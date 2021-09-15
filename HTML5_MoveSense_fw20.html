@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>HTML5 Movesense reader </title>
+<style type="text/css">
+    canvas { 
+      border:1px solid black;
+    }
+</style>
+
+
+</head>
+<body onload="init();">
+
+    <canvas id="AccCanvas" width="500" height="200"></canvas>
+    <canvas id="GyroCanvas" width="500" height="200"></canvas>
+    <canvas id="SensorFusion" width="500" height="200"></canvas>
+    <p>
+        <button onclick="start()">Start sensor</button>
+        <button onclick="stop()">Stop sensor</button>
+        <button onclick="saveToFile()">Save to file</button>
+        <button onclick="changeDisplay()">Change Datatype</button>
+    </p>
+
+
+<script> 
+ var canvas, canvas2, canvas3, ctx, ctx2, ctx3, requestId;
+ var xAcc = [];
+ var yAcc = [];
+ var zAcc = [];
+ var xGyro = [];
+ var yGyro = [];
+ var zGyro = [];
+ var rollAr = [];
+ var pitchAr = [];
+ var yawAr = [];
+ var plotChooser = 1;
+
+ // Bluetooth variables
+ let targetDevice = null;
+
+ const AccGyro_SERVICE = "34802252-7185-4d5d-b431-630e7050e8f0";
+ const AccGyro_PERDIO = "34800001-7185-4d5d-b431-630e7050e8f0";
+ const AccGyro_DATA = "34800002-7185-4d5d-b431-630e7050e8f0";
+
+
+ // Variables for 1A - General
+ var gravity = 9.81;
+ var CombAcc = 0;
+ var CombAccOld = 0;
+ var CombAccF2 = 0;
+ var CombAccF2Old = 0;
+ var CombAccF1 = 0;
+ 
+ // Variabels for 1A - Cadence
+ var date = new Date();
+ var timestamp  = date.getTime();
+ var oldTimestamp = timestamp;
+ var OutputString = "Output";
+
+ // Variables for 2A
+ var xGyroOld = 0;
+ var yGyroOld = 0;
+ var zGyroOld = 0;
+ var xAccOld = 100;
+ var yAccOld = 100;
+ var zAccOld = 100;
+ 
+ // Variables for 1B
+ var accRoll = 0;
+ var gyroRoll = 0;
+ var comRoll = 0;
+
+ function onDataChanged(event) {
+
+    // RSSI Recived Signal Strength Indicator
+    let RSSI = event.rssi; 
+
+    // Event data is converted into 6 parameters. X, Y, Z of the Accelerometer and Gyro
+    let value = event.target.value
+
+    let numOfSamples = (value.byteLength - 6) / (6*4);
+
+    // console.log('The Value:'+value);
+    // console.log('byteLength:'+value.byteLength);
+    // console.log('Number Of Samples:'+numOfSamples);
+    
+    //var uint8View = new Uint8Array(value.buffer);
+    // console.log("incoming data: ", uint8View);
+
+    // let timestamp = value.getUint32(2, true);
+    
+    
+    // The samling time is set under the function findPeriodCharacteristic to 52Hz
+    let dT = 1/52
+
+    let i = 0;
+    for (i=0;i<numOfSamples;i++){
+        let xAccNew = value.getFloat32(6 + i * 12, true);
+        let yAccNew = value.getFloat32(6 + i * 12 + 4, true);
+        let zAccNew = value.getFloat32(6 + i * 12 + 8, true);
+
+        let xGyroNew = value.getFloat32(6 + i * 12 + numOfSamples * 12, true);
+        let yGyroNew = value.getFloat32(6 + i * 12 + numOfSamples * 12 + 4 , true);
+        let zGyroNew = value.getFloat32(6 + i * 12 + numOfSamples * 12 + 8, true);
+        // console.log('Acc:'+xAccNew+':'+yAccNew+':'+zAccNew);
+        // console.log('Gyro:'+xGyroNew+':'+yGyroNew+':'+zGyroNew);
+
+        //1A
+        if (plotChooser==0){
+            // 1A.1
+            CombAcc = Math.sqrt(Math.pow(xAccNew,2) + Math.pow(yAccNew, 2) + Math.pow(zAccNew,2)) - gravity;
+
+            // 1A.2
+            let alfa = 0.4;
+            CombAccF1 = alfa*CombAccOld + (1-alfa)*CombAcc;
+
+            // 1A.3
+            let alfa2 = 0.95;
+            let beta = 0.98;
+
+            if (CombAcc > CombAccOld){
+                CombAccF2 = alfa2 * CombAccF2Old + (1-alfa2) * CombAcc;
+            }
+            else if (CombAcc < CombAccOld){
+                CombAccF2 = beta * CombAccF2Old + (1-beta) * CombAcc;
+            }
+            
+            // 1A.4
+            if ((CombAcc > CombAccF2) && (CombAccOld < CombAccF2Old)){
+                var date = new Date();
+                timestamp = date.getTime();
+                // console.log(timestamp);
+                var cadence = 1000/(timestamp-oldTimestamp);
+                console.log(precise(cadence) +' cadence');
+                oldTimestamp = timestamp;
+            }
+
+            // 1A extension
+            if (cadence<=5){
+                timestamp1 = date.getTime();
+            }
+            else if (cadence>5){
+                timestamp2 = date.getTime();
+                if (timestamp2-timestamp1 >1000){
+                    console.log("Movesense is being shaken")
+                }
+            }
+        }
+
+        // 1B
+        if (plotChooser ==1){
+            //1B.1
+            accRoll = Math.atan(xAccNew/(Math.sqrt(Math.pow(yAccNew,2)+ Math.pow(zAccNew,2))))*180/Math.PI;
+
+            //1B.2
+            gyroRollOld = gyroRoll;
+            gyroRoll = (gyroRollOld+dT*yGyroNew);
+
+            //1B.3
+            let alfa = 0.67;
+            comRollOld = comRoll;
+            comRoll = (alfa * (comRollOld + dT*yGyroNew) + (1-alfa)*accRoll);
+        }
+
+        // Plot lines
+        if (plotChooser == 0){
+            if (-100<(CombAcc*5)<100){   
+                plotOnBlueLine(CombAcc*5);
+            }
+            plotOnGreenLine(CombAccF2*7)
+            plotOnRedLine(CombAccF1*7)
+        }
+        else if (plotChooser == 1){
+            plotOnBlueLine(accRoll);
+            plotOnGreenLine(gyroRoll);
+            plotOnRedLine(comRoll);
+        }
+        else {
+            console.log("ERROR; NO display data CHOSEN")
+        }    
+
+        // Updating
+        CombAccF2Old = CombAccF2;
+        CombAccOld=CombAcc;
+        uppdateAccAndGyroCanvas(xAccNew,yAccNew,zAccNew,xGyroNew,yGyroNew,zGyroNew);
+    }     
+ }
+
+
+ function uppdateAccAndGyroCanvas(xAccNew,yAccNew,zAccNew,xGyroNew,yGyroNew,zGyroNew){
+     // Here the canvas is upptade with new raw data
+      xAcc.shift();
+      xAcc.push(100+(xAccNew*5));
+      yAcc.shift();
+      yAcc.push(100+(yAccNew*5));
+      zAcc.shift();
+      zAcc.push(100+(zAccNew*5));
+      xGyro.shift(); 
+      xGyro.push(100+(xGyroNew));
+      yGyro.shift();
+      yGyro.push(100+(yGyroNew));
+      zGyro.shift();
+      zGyro.push(100+(zGyroNew));
+ }
+
+
+ function init(){
+    canvas = document.getElementById('AccCanvas');
+    ctx = canvas.getContext('2d');
+    canvas2 = document.getElementById('GyroCanvas');
+    ctx2 = canvas2.getContext('2d');
+    canvas3 = document.getElementById('SensorFusion');
+    ctx3 = canvas3.getContext('2d');
+    for(i=0; i < 250; i++){
+        xAcc.push(100);
+        yAcc.push(100);
+        zAcc.push(100);
+        xGyro.push(100);
+        yGyro.push(100);
+        zGyro.push(100);
+        rollAr.push(100);
+        pitchAr.push(100);
+        yawAr.push(100);
+    }
+    console.log("init");
+ } 
+
+
+ function precise(x) {
+    return Number.parseFloat(x).toPrecision(8);
+ }
+
+
+ function startBluetooth(){
+    navigator.bluetooth.requestDevice({
+    filters: [{ services: [AccGyro_SERVICE] }, { namePrefix: "Movesense" }]
+    })
+    .then(device => {
+        targetDevice = device;
+        return device.gatt.connect();
+    })
+    .then(server => {
+        return server.getPrimaryService(AccGyro_SERVICE);
+    })
+    .then(service => {
+        findDataCharacteristic(service);
+        findPeriodCharacteristic(service);
+    })
+    .catch(error => {
+      console.log(error);
+      targetDevice = null;
+    });
+ }
+
+
+ function findDataCharacteristic(service) {
+  service.getCharacteristic(AccGyro_DATA)
+    .then(characteristic => {
+      return characteristic.startNotifications();
+    })
+    .then(characteristic => {
+      characteristic.addEventListener('characteristicvaluechanged', onDataChanged);
+      console.log("change ");
+    })
+    .catch(error => {
+      console.log(error);
+    });
+ }
+
+ function plotOnRedLine(newValue){
+    rollAr.shift();
+      rollAr.push(100+newValue); 
+ }
+
+ function plotOnBlueLine(newValue){
+  yawAr.shift();
+    yawAr.push(100+newValue);
+ }
+
+ function plotOnGreenLine(newValue){
+  pitchAr.shift();
+    pitchAr.push(100+newValue);    
+ }
+
+ function findPeriodCharacteristic(service) {
+    //  Acceleromter = 100, IMU 9 = 900
+    //  Change period 900 = 13Hz, 901 = 26Hz, 902 = 52Hz, 903 = 104Hz
+    //  904 = 208Hz, 905 = 416Hz
+    console.log("setData");
+    service.getCharacteristic(AccGyro_PERDIO)
+    .then(characteristic => {
+        //let dataResource = "/Meas/IMU6/52";
+        const val = new Uint8Array([1, 99, 47, 77, 101, 97, 115, 47, 73, 77, 85, 54, 47, 53, 50])
+        //const val = new Uint8Array([2, 99]);
+        characteristic.writeValue(val)
+    })
+    .catch(error => {
+      console.log(error);
+    });
+ }
+   
+ function start() {
+   // Start the animation loop, targets 60 frames/s
+   startBluetooth();
+   requestId = requestAnimationFrame(animationLoop);
+
+   console.log("Initial data type is: " + plotChooser)
+ }
+
+ function stop() {
+   if (requestId) {
+      cancelAnimationFrame(requestId);
+   }
+   if (targetDevice == null) {
+    console.log('The target device is null.');
+    return;
+  }
+  //bluetoothCharacteristic.stopNotifications()
+  targetDevice.gatt.disconnect();
+ }
+
+
+ function animationLoop(timestamp){
+     //console.log("animate");
+     ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+     ctx.font = "12px Arial";
+     ctx.fillStyle = "#FF0000";
+     ctx.fillText("Accelerometer X Y Z:",5,12);
+
+     ctx.strokeStyle = "#FF0000";
+     ctx.beginPath(0,200-xAcc[0]);
+     for(foo = 0; foo < canvas.width; foo++){
+         ctx.lineTo(foo*2,200-xAcc[foo]);
+     }
+     ctx.stroke();
+     
+     ctx.strokeStyle = "#00FF00";
+     ctx.beginPath(0,200-yAcc[0]);
+     for(foo = 0; foo < canvas.width; foo++){
+         ctx.lineTo(foo*2,200-yAcc[foo]);
+     }
+     ctx.stroke();
+
+     ctx.strokeStyle = "#0000FF";
+     ctx.beginPath(0,200-zAcc[0]);
+     for(foo = 0; foo < canvas.width; foo++){
+         ctx.lineTo(foo*2,200-zAcc[foo]);
+     }
+     ctx.stroke();
+     
+
+     ctx2.clearRect(0, 0, canvas2.width, canvas2.height);
+
+     ctx2.font = "12px Arial";
+     ctx2.fillStyle = "#FF0000";
+     ctx2.fillText('Gyro X Y Z: ',5,12);
+
+     ctx2.strokeStyle = "#FF0000";
+     ctx2.beginPath(0,200-xGyro[0]);
+     for(foo = 0; foo < canvas2.width; foo++){
+         ctx2.lineTo(foo*2,200-xGyro[foo]);
+     }
+     ctx2.stroke();
+     
+     ctx2.strokeStyle = "#00FF00";
+     ctx2.beginPath(0,200-yGyro[0]);
+     for(foo = 0; foo < canvas2.width; foo++){
+         ctx2.lineTo(foo*2,200-yGyro[foo]);
+     }
+     ctx2.stroke();
+
+     ctx2.strokeStyle = "#0000FF";
+     ctx2.beginPath(0,200-zGyro[0]);
+     for(foo = 0; foo < canvas2.width; foo++){
+         ctx2.lineTo(foo*2,200-zGyro[foo]);
+     }
+     ctx2.stroke();
+
+     ctx3.clearRect(0, 0, canvas3.width, canvas3.height);
+
+     ctx3.font = "12px Arial";
+     ctx3.fillStyle = "#FF0000";
+     ctx3.fillText(OutputString,5,12);
+
+     ctx3.strokeStyle = "#FF0000";
+     ctx3.beginPath(0,200-rollAr[0]);
+     for(foo = 0; foo < canvas3.width; foo++){
+         ctx3.lineTo(foo*2,200-rollAr[foo]);
+     }
+     ctx3.stroke();
+     
+     ctx3.strokeStyle = "#00FF00";
+     ctx3.beginPath(0,200-pitchAr[0]);
+     for(foo = 0; foo < canvas3.width; foo++){
+         ctx3.lineTo(foo*2,200-pitchAr[foo]);
+     }
+     ctx3.stroke();
+
+     ctx3.strokeStyle = "#0000FF";
+     ctx3.beginPath(0,200-yawAr[0]);
+     for(foo = 0; foo < canvas3.width; foo++){
+         ctx3.lineTo(foo*2,200-yawAr[foo]);
+     }
+     ctx3.stroke();
+     
+
+     requestId = requestAnimationFrame(animationLoop);
+ }
+ 
+ function changeDisplay(){
+     // Function for changing the displayed datatype
+     if (plotChooser == 0){
+         plotChooser = 1;
+         console.log("Now displaying gyro  (" + plotChooser + ")")
+     }
+     else if (plotChooser == 1){
+         plotChooser = 0;
+         console.log("Now displaying combined acceleration  (" + plotChooser + ")")
+     }
+     resetDisplay();
+ }
+
+ function resetDisplay(){
+     // Function to reset all the displayed values to 0
+     // 1st empty the current arrays
+    rollAr = [];
+    pitchAr = [];
+    yawAr = [];
+
+    // push starting parameters in again
+    i=0
+    for(i=0; i < 250; i++){
+        rollAr.push(100);
+        pitchAr.push(100);
+        yawAr.push(100);
+    }
+
+ }
+
+ function saveToFile(){
+    var file;
+    var properties = {type: 'application/json'}; // Specify the file's mime-type.
+    var myObj = {accX: xAcc, accY: yAcc, accZ: zAcc, magX: xGyro, magY: yGyro, magZ: xGyro};
+    var myJSON = JSON.stringify(myObj);
+    try {
+        // Specify the filename using the File constructor, but ...
+        file = new File(myJSON, "6DOF.json", properties);
+    } catch (e) {
+        // ... fall back to the Blob constructor if that isn't supported.
+        file = new Blob([myJSON], {type: "application/json"});
+    }
+    var a = document.createElement('a');
+    a.href = window.URL.createObjectURL(file);
+    a.download = "6DOF.json";
+    a.click();
+ }
+
+</script>
+</body>
+</html>
