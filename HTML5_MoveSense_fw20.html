@@ -550,17 +550,18 @@
     try {
         // Specify the filename using the File constructor, but ...
         file = new File(myJSON, "6DOF.json", properties);
-        file2 = new File(myJSON2, "Dynamic_Data.json", properties)
+        file2 = new File(myJSON2, "Dynamic_Data.json", properties);
     } catch (e) {
         // ... fall back to the Blob constructor if that isn't supported.
         file = new Blob([myJSON], {type: "application/json"});
         file2 = new Blob([myJSON2],{type: "application/json"});
     }
     var a = document.createElement('a');
-    a.href = window.URL.createObjectURL(file);
-    a.href = window.URL.createObjectURL(file2);
+    var b = document.createElement('b');
+    a.href = window.URL.createObjectURL(file, file2);
     a.download = "6DOF.json";
-    a.download = "Dynamic_Data.json";
+    // a.href = window.URL.createObjectURL(file2);
+    a.download = "Dynamic_Data.json"
     a.click();
  }
 
