@@ -1,4 +1,5 @@
-# IdrottsMätta4U
+<img src="Images/GitHubHeader.png">
+
 > IdrottsMätta4U is a system developped by KTH master students that provides data for elite sprinters using IMU sensors. The data that we can measure are: 
 * Ground contact times
 * Foot placement
