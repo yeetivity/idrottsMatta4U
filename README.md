@@ -15,9 +15,9 @@
 # <a name="team-members"></a>Team Members
 * "A. Elsaid" <dummymail@kth.se>
 * "J.J. van Esch" <jjve@kth.se>
-* "M. Geisler" <dummymail@kth.se>
-* "L. Minet" <dummymail@kth.se>
-* "E. Perini" <dummymail@kth.se>
+* "M. Geisler" <mgeisler@kth.se>
+* "L. Minet" <lminet@kth.se>
+* "E. Perini" <eperini@kth.se>
 
 # <a name="project-demo"></a>Project Demo
 In this section we will display the data that our system provides
