@@ -21,9 +21,9 @@ class DataRead():
         self.data = []
         return
 
-    def load_all(self, paths):
+    def load_all(self, folderpath, paths):
         for i in range(len(paths)):
-            path = 'JSON_DATA/%s' % paths[i]
+            path = folderpath+paths[i]
             f = open(path)
             self.data.append(json.load(f))
 
