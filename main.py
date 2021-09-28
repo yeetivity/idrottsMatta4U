@@ -39,6 +39,7 @@ all_csv_data = data.transform_csvformat(all_csv_gyrdata, acc=False)
 """
 processed_data = DataProcess(all_csv_data)
 processed_data.combineAccelerations()
+processed_data.simpelKalmanFilter()
 
 
 
