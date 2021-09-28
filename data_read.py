@@ -79,7 +79,7 @@ class DataRead():
                 self.csvdata.append(list(csv.reader(csvfile)))
 
         return self.csvdata
-        
+
 
     def transform_csvformat(self, data_container, acc = True):
 
@@ -90,17 +90,17 @@ class DataRead():
                 self.transformeddata.append({'accX': [], 'accY': [], 'accZ': [], 'gyrX': [], 'gyrY': [], 'gyrZ': [], 'time_a': [], 'time_g': []})
                 for ii in range(len(data_container[i])):
                     if (ii != 0):
-                        self.transformeddata[i]['time_a'].append(data_container[i][ii][0])
-                        self.transformeddata[i]['accX'].append(data_container[i][ii][1])
-                        self.transformeddata[i]['accY'].append(data_container[i][ii][2])
-                        self.transformeddata[i]['accZ'].append(data_container[i][ii][3])
+                        self.transformeddata[i]['time_a'].append(float(data_container[i][ii][0]))
+                        self.transformeddata[i]['accX'].append(float(data_container[i][ii][1]))
+                        self.transformeddata[i]['accY'].append(float(data_container[i][ii][2]))
+                        self.transformeddata[i]['accZ'].append(float(data_container[i][ii][3]))
 
             else:
                 for jj in range(len(data_container[i])):
                     if (jj != 0):
-                        self.transformeddata[i]['time_g'].append(data_container[i][jj][0])
-                        self.transformeddata[i]['gyrX'].append(data_container[i][jj][1])
-                        self.transformeddata[i]['gyrY'].append(data_container[i][jj][2])
-                        self.transformeddata[i]['gyrZ'].append(data_container[i][jj][3])
+                        self.transformeddata[i]['time_g'].append(float(data_container[i][jj][0]))
+                        self.transformeddata[i]['gyrX'].append(float(data_container[i][jj][1]))
+                        self.transformeddata[i]['gyrY'].append(float(data_container[i][jj][2]))
+                        self.transformeddata[i]['gyrZ'].append(float(data_container[i][jj][3]))
 
         return self.transformeddata
