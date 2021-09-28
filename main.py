@@ -7,6 +7,7 @@ import matplotlib
 matplotlib.use("TkAGG")
 import numpy as np
 import os
+import glob
 from data_read import DataRead
 from data_plot import DataPlot
 import time as t
@@ -14,18 +15,23 @@ import time as t
 start_time = t.time()
 
 # Load all the JSON files - Automatic reading from a folder
-data = DataRead()                                                                                   # Initialise the datareading class
-folderpath = 'JSON_DATA/Experiment1/'                                                               # Define path to the folder
-json_files = [pos_json for pos_json in os.listdir(folderpath) if pos_json.endswith('.json')]        # Read all the seperate paths for every .json file
-all_data = data.load_jsons(folderpath ,paths = json_files)                                            # Use load_all function to create an array with all data
+data = DataRead()                                                                                   # Initialise the datareading class                                                              # Define path to the folder
+paths = sorted(glob.glob('JSON_DATA/Experiment1/'+ "/*.json"))        # Read all the seperate paths for every .json file
+all_json_data = data.load_jsons(paths)                                          # Use load_all function to create an array with all data
 
-# Load all CSV files - Automatic reading from a folder
-csvfolderpath = 'CSV_DATA/'
-csv_paths = [pos_csv for pos_csv in os.listdir(csvfolderpath) if pos_csv.endswith('.csv')]
-all_csv_data = data.load_csvs(csvfolderpath, paths= csv_paths)
+# Load all CSV acc files - Automatic reading from a folder
+# ERROR, THIS DOES NOT READ IN ORDER --> USE GLOB?
+paths = sorted(glob.glob('CSV_DATA/ACC/'+ "/*.csv"))
+all_csv_accdata = data.load_csvs(paths)
+data.transform_csvformat(all_csv_accdata, acc=True)
+
+# Load all CSV gyr files - Automatic reading from a folder
+paths = sorted(glob.glob('CSV_DATA/GYRO/'+ "/*.csv"))
+all_csv_gyrdata = data.load_csvs(paths)
+all_csv_data = data.transform_csvformat(all_csv_gyrdata, acc=False)
 
 # Plot the raw data
-data_plot = DataPlot(all_data)
+data_plot = DataPlot(all_json_data)
 accXplot = data_plot.AccComparePlot()
 positionXplot = data_plot.SensorPositionComparePlot()
 
