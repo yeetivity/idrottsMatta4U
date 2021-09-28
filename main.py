@@ -15,9 +15,14 @@ start_time = t.time()
 
 # Load all the JSON files - Automatic reading from a folder
 data = DataRead()                                                                                   # Initialise the datareading class
-folderpath = 'JSON_DATA/Experiment1/'                                                             # Define path to the folder
-json_files = [pos_json for pos_json in os.listdir(folderpath) if pos_json.endswith('.json')]      # Read all the seperate paths for every .json file
-all_data = data.load_all(folderpath ,paths = json_files)                                                        # Use load_all function to create an array with all data
+folderpath = 'JSON_DATA/Experiment1/'                                                               # Define path to the folder
+json_files = [pos_json for pos_json in os.listdir(folderpath) if pos_json.endswith('.json')]        # Read all the seperate paths for every .json file
+all_data = data.load_jsons(folderpath ,paths = json_files)                                            # Use load_all function to create an array with all data
+
+# Load all CSV files - Automatic reading from a folder
+csvfolderpath = 'CSV_DATA/'
+csv_paths = [pos_csv for pos_csv in os.listdir(csvfolderpath) if pos_csv.endswith('.csv')]
+all_csv_data = data.load_csvs(csvfolderpath, paths= csv_paths)
 
 # Plot the raw data
 data_plot = DataPlot(all_data)
