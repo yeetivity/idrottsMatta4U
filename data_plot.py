@@ -78,10 +78,26 @@ class DataPlot(object):
 
         return figure
 
-    def kalAccPlot(self, kalAcc_Data ,figure=None):
-        figure, ax = plt.subplots(1, 1)
+    def simple_kalAccPlot(self, kalAcc_Data ,figure=None):
+        if (figure == None):
+            figure, ax = plt.subplots(1, 1)
+            ax.plot(self.time[0], kalAcc_Data[0], label='Kalman Filtered data, 1D')
+        else:
+            ax = figure.axes[0]
 
-        ax.plot(self.time[0], kalAcc_Data[0], color='red', label='Kalman Filtered data, 1D')
+        ax.plot(self.time[0], kalAcc_Data[0])
+
+        return figure
+
+    def kalAccPlot(self, Data, figure=None):
+        if (figure == None):
+            figure, ax = plt.subplots(1, 3)
+            time = np.insert(self.time[0], 0, 0)
+            ax[0].plot(time, Data[0][2])
+            ax[1].plot(time, Data[0][1])
+            ax[2].plot(time, Data[0][0])
+        else:
+            ax = figure.axes[0]
 
         return figure
 

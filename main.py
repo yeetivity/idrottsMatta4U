@@ -4,7 +4,6 @@ usable dictionaries and finally visible graphs
 """
 
 import matplotlib
-from matplotlib.pyplot import ylim
 matplotlib.use("TkAGG")
 import numpy as np
 import os
@@ -40,6 +39,8 @@ all_csv_data = data.transform_csvformat(all_csv_gyrdata, acc=False)
 processed_data = DataProcess(all_csv_data)
 combAcc = processed_data.combineAccelerations()
 simple_kalAcc = processed_data.simpleKalmanFilter()
+kalData = processed_data.complexKalmanFilter()
+
 
 
 
@@ -51,8 +52,11 @@ simple_kalAcc = processed_data.simpleKalmanFilter()
 data_plot = DataPlot(all_csv_data)
 accXplot = data_plot.AccComparePlot()
 positionXplot = data_plot.SensorPositionComparePlot()
-combPlot = data_plot.kalAccPlot(combAcc)
-kalAccplot = data_plot.kalAccPlot(simple_kalAcc)
+# combPlot = data_plot.kalAccPlot(combAcc)
+simplekalAccplot = data_plot.simple_kalAccPlot(simple_kalAcc)
+simplekalAccPlot = data_plot.simple_kalAccPlot(combAcc, figure= simplekalAccplot)
+
+kalAccPlot = data_plot.kalAccPlot(kalData)
 
 
 
@@ -60,8 +64,10 @@ data_plot.show_plot(figure=accXplot, x_lim=[0,250], y_lim=[-500,500], y_label= '
                     title= 'X accelerations for different speeds', legend=True)
 data_plot.show_plot(figure=positionXplot, x_lim=[0,250], y_lim=[-500,500], y_label= 'magnitude', x_label='sample number',
                     title= 'X accelerations for different sensor positions', legend=True) 
-data_plot.show_plot(figure=kalAccplot, x_lim=[0, 30000], y_lim=[-50,50], y_label= 'magnitude', x_label='timestamp',
-                    title= 'kalman Filter', legend=True)               
+data_plot.show_plot(figure=simplekalAccplot, x_lim=[0, 20000], y_lim=[-50,50], y_label= 'magnitude', x_label='timestamp',
+                    title= 'kalman Filter', legend=True)     
+data_plot.show_plot(figure=kalAccPlot, x_lim=[0, 20000], y_lim=[-50,50], y_label= 'magnitude', x_label='timestamp',
+                    title= 'complex kalman Filter', legend=True)            
 
 # Process the raw data with filters and such
 

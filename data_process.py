@@ -11,6 +11,9 @@ class DataProcess(object):
         self.combAcc = []
         self.simple_kalAcc = []
         self.kalAcc = []
+        self.kalVel = []
+        self.kalPos = []
+        self.kalData = []
 
         return
 
@@ -53,12 +56,59 @@ class DataProcess(object):
         return self.simple_kalAcc
 
 
-    def complexKalmanFilter():
+    def complexKalmanFilter(self):
         """
         Kalman with multiple dimensions
         """
+        for i in range(len(self.combAcc)):
+            # Initiliaze some filter values
+            dT = 1/52
+            R = 10                                      # Some scalar
+            z = self.combAcc[i]
+            A = np.array([  [1, dT, 0.5 * dT**2],
+                            [0, 1, dT],
+                            [0, 0, 1]])                 # State transition matrix
+            P = np.array([  [0, 0, 0],
+                            [0, 0, 0],
+                            [0, 0, 10]])                # State covariance matrix
+            Q = np.array([  [0, 0, 0],
+                            [0, 0, 0],
+                            [0, 0, 0.5]])               # Process noise covariance matrix
+            H = np.array([0, 0, 1])                     # Measurement matrix
+            x = np.array([  [0],
+                            [0],
+                            [0]])                       # Position, velocity, acceleration
+            y = np.subtract( z[0], np.dot(H,x))         # Comparing predicted value with measurement
+            X = x
 
-        return
+            # filtering
+            for j in range (len(z)):
+                
+                # PREDICTION VALUES
+                    # x = Ax + Bu
+                x = np.dot(A,x) #+ np.dot(B, u)
+                    # P = A P A^T + Q
+                P = np.add( (np.dot(np.dot(A,P), A.transpose())), Q)
+                
+                # MEASUREMENT VALUES
+                    # Y = Z - H X
+                y = np.subtract(z[j], np.dot(H, x))
+                    # K = (P H^T) / ( ( HPH^T) + R)
+                K = np.dot( P, H.transpose()) / (np.dot(np.dot(H, P), H.transpose()) + R)
+
+                # UPDATE X AND P
+                    # X = X + KY
+                for ii in range(0,3):
+                    x[ii] = x[ii] + y*K[ii]
+                    # P = (1 - KH) P
+                P = np.dot(np.subtract(1, np.dot(K,H)), P)
+                
+                X = np.hstack((X, x))
+            
+            self.kalData.append(X)
+
+
+        return self.kalData
     
     
     def filter():
