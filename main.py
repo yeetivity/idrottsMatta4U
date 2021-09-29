@@ -51,6 +51,7 @@ simple_kalAcc = processed_data.simpleKalmanFilter()
 data_plot = DataPlot(all_csv_data)
 accXplot = data_plot.AccComparePlot()
 positionXplot = data_plot.SensorPositionComparePlot()
+combPlot = data_plot.kalAccPlot(combAcc)
 kalAccplot = data_plot.kalAccPlot(simple_kalAcc)
 
 
