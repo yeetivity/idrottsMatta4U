@@ -4,6 +4,7 @@ usable dictionaries and finally visible graphs
 """
 
 import matplotlib
+from matplotlib.pyplot import ylim
 matplotlib.use("TkAGG")
 import numpy as np
 import os
@@ -24,7 +25,6 @@ paths = sorted(glob.glob('JSON_DATA/Experiment1/'+ "/*.json"))        # Read all
 all_json_data = data.load_jsons(paths)                                # Use load_all function to create an array with all data
 
 # Load all CSV acc files - Automatic reading from a folder
-# ERROR, THIS DOES NOT READ IN ORDER --> USE GLOB?
 paths = sorted(glob.glob('CSV_DATA/ACC/'+ "/*.csv"))
 all_csv_accdata = data.load_csvs(paths)
 data.transform_csvformat(all_csv_accdata, acc=True)
@@ -38,8 +38,8 @@ all_csv_data = data.transform_csvformat(all_csv_gyrdata, acc=False)
 ------------------------------PROCESSING DATA ------------------------------
 """
 processed_data = DataProcess(all_csv_data)
-processed_data.combineAccelerations()
-processed_data.simpelKalmanFilter()
+combAcc = processed_data.combineAccelerations()
+simple_kalAcc = processed_data.simpleKalmanFilter()
 
 
 
@@ -48,14 +48,19 @@ processed_data.simpelKalmanFilter()
 """
 
 # Plot the raw data
-data_plot = DataPlot(all_json_data)
+data_plot = DataPlot(all_csv_data)
 accXplot = data_plot.AccComparePlot()
 positionXplot = data_plot.SensorPositionComparePlot()
+kalAccplot = data_plot.kalAccPlot(simple_kalAcc)
+
+
 
 data_plot.show_plot(figure=accXplot, x_lim=[0,250], y_lim=[-500,500], y_label= 'magnitude', x_label='sample number',
                     title= 'X accelerations for different speeds', legend=True)
 data_plot.show_plot(figure=positionXplot, x_lim=[0,250], y_lim=[-500,500], y_label= 'magnitude', x_label='sample number',
-                    title= 'X accelerations for different sensor positions', legend=True)                  
+                    title= 'X accelerations for different sensor positions', legend=True) 
+data_plot.show_plot(figure=kalAccplot, x_lim=[0, 30000], y_lim=[-50,50], y_label= 'magnitude', x_label='timestamp',
+                    title= 'kalman Filter', legend=True)               
 
 # Process the raw data with filters and such
 

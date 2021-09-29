@@ -9,6 +9,7 @@ class DataProcess(object):
 
         self.gravity = 9.81
         self.combAcc = []
+        self.simple_kalAcc = []
         self.kalAcc = []
 
         return
@@ -22,12 +23,12 @@ class DataProcess(object):
             self.combAcc.append(np.sqrt(np.square(self.storeddata[i]['accX']) + 
                                         np.square(self.storeddata[i]['accY']) +
                                         np.square(self.storeddata[i]['accZ']))
-                                        -self.gravity )
+                                        - self.gravity )
 
-        return
+        return self.combAcc
 
 
-    def simpelKalmanFilter(self):
+    def simpleKalmanFilter(self):
         """
         Kalman with one dimension
         """
@@ -48,8 +49,8 @@ class DataProcess(object):
                 x[j] = x[j-1] + K[j] * (z[j] - x[j-1])
                 P[j] = (1 - K[j]) * (P[j-1] + Q)
 
-            self.kalAcc.append(x)
-        return
+            self.simple_kalAcc.append(x)
+        return self.simple_kalAcc
 
 
     def complexKalmanFilter():

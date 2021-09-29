@@ -1,4 +1,5 @@
 from matplotlib import pyplot as plt
+import numpy as np
 
 class DataPlot(object):
     """
@@ -25,6 +26,8 @@ class DataPlot(object):
         self.gyrY = []
         self.gyrZ = []
 
+        self.time = []
+
         self.samples = []
 
         # Fill the arrays
@@ -33,12 +36,18 @@ class DataPlot(object):
             self.accY.append(readdata[i]['accY'])
             self.accZ.append(readdata[i]['accZ'])
 
-            self.gyrX.append(readdata[i]['magX'])
-            self.gyrY.append(readdata[i]['magY'])
-            self.gyrZ.append(readdata[i]['magZ'])
+            self.gyrX.append(readdata[i]['gyrX'])
+            self.gyrY.append(readdata[i]['gyrY'])
+            self.gyrZ.append(readdata[i]['gyrZ'])
+
+            self.time.append(readdata[i]['time_a'])
 
         for ii in range(len(readdata[0]['accX'])):
             self.samples.append(ii + 1) # append the sample number to the list, first sample is 1
+
+        for j in range (len(self.time)):
+            self.time[j] = np.array(self.time[j])
+            self.time[j] = self.time[j] - self.time[j][0]
 
 
         return
@@ -49,10 +58,10 @@ class DataPlot(object):
         figure, ax = plt.subplots(2, 2)
 
         #Plot data on the figure
-        ax[0, 0].plot(self.samples, self.accX[0], color='blue', label='5km/h')
-        ax[0, 1].plot(self.samples, self.accX[1], color='red', label='12.5km/h')
-        ax[1, 0].plot(self.samples, self.accX[2], color='green', label='20km/h')
-        ax[1, 1].plot(self.samples, self.accX[3], color='purple', label='sprint')
+        ax[0, 0].plot(self.time[0], self.accX[0], color='blue', label='5km/h')
+        ax[0, 1].plot(self.time[1], self.accX[1], color='red', label='12.5km/h')
+        ax[1, 0].plot(self.time[2], self.accX[2], color='green', label='20km/h')
+        ax[1, 1].plot(self.time[3], self.accX[3], color='purple', label='sprint')
 
         return figure
 
@@ -62,10 +71,17 @@ class DataPlot(object):
         figure, ax = plt.subplots(2, 2)
 
         #Plot data on the figure
-        ax[0, 0].plot(self.samples, self.accX[0], color='blue', label='5km/h, sensor on foot')
-        ax[0, 1].plot(self.samples, self.accX[4], color='blue', linestyle= '--', label='5km/h, sensor on leg')
-        ax[1, 0].plot(self.samples, self.accX[1], color='green', label='sprint, sensor on foot')
-        ax[1, 1].plot(self.samples, self.accX[5], color='green', linestyle= '--', label='sprint, sensor on leg')
+        ax[0, 0].plot(self.time[0], self.accX[0], color='blue', label='5km/h, sensor on foot')
+        ax[0, 1].plot(self.time[4], self.accX[4], color='blue', linestyle= '--', label='5km/h, sensor on leg')
+        ax[1, 0].plot(self.time[1], self.accX[1], color='green', label='sprint, sensor on foot')
+        ax[1, 1].plot(self.time[5], self.accX[5], color='green', linestyle= '--', label='sprint, sensor on leg')
+
+        return figure
+
+    def kalAccPlot(self, kalAcc_Data ,figure=None):
+        figure, ax = plt.subplots(1, 1)
+
+        ax.plot(self.time[0], kalAcc_Data[0], color='red', label='Kalman Filtered data, 1D')
 
         return figure
 
