@@ -53,7 +53,7 @@ kalData = processed_data.complexKalmanFilter()
 ------------------------------PLOTTING DATA ------------------------------
 """
 
-# Plot the raw data
+# Plot combAcc data and raw accx data in 1 plot
 data_plot = DataPlot()
 accPlot = data_plot.plot1by1(all_csv_data[experiment]['time_a'], combAcc[experiment], lab='combined acceleration')
 accPlot = data_plot.plot1by1(all_csv_data[experiment]['time_a'], all_csv_data[experiment]['accX'], lab='raw x acceleration', figure=accPlot, linenumber=6)
@@ -62,6 +62,18 @@ accPlot = data_plot.plot1by1(all_csv_data[experiment]['time_a'], all_csv_data[ex
 data_plot.show_plot(accPlot, [0,all_csv_data[experiment]['time_a'][-1]], [ (combAcc[experiment].min() - padding),(combAcc[experiment].max() + padding)],
                      'magnitude', 'timestamp', title='Combined acceleration and raw x acceleration', legend=True)
 
+# Plot combAcc data and raw acc data in subplots
+accSubPlot = data_plot.plot2by1(all_csv_data[experiment]['time_a'], combAcc[experiment], 
+                                all_csv_data[experiment]['time_a'], all_csv_data[experiment]['accX'],
+                                lab1 = 'combAcc', lab2= 'accX')
+accSubPlot = data_plot.plot2by1(all_csv_data[experiment]['time_a'], all_csv_data[experiment]['accY'],
+                                all_csv_data[experiment]['time_a'], all_csv_data[experiment]['accZ'],
+                                lab1= 'accY', lab2='accZ', figure= accSubPlot, subplotnumber=1,
+                                linenumber1 = 1, linenumber2 = 4)
+
+# Add automatic scaling
+data_plot.show_plot(accSubPlot, [0,20000], [-10, 30],
+                    'magnitude', 'timestamp', title='Combined acceleration and raw accelerations', legend=True)
 
 # accXplot = data_plot.AccComparePlot()
 # positionXplot = data_plot.SensorPositionComparePlot()

@@ -68,6 +68,93 @@ class DataPlot(object):
 
         return figure
 
+
+    def plot1by2(self, xdata1, ydata1, xdata2=None, ydata2=None, lab1 = '', lab2 = '', figure=None, subplotnumber=None, linenumber1=0, linenumber2=1):
+        """
+        =INPUT=
+        xdata       data that should be plotted on x axis
+        ydata       data that should be plotted on y axis
+        lab         label that should be given to the data
+        figure      figure data should be plotted on, initialized to be none
+
+        =OUTPUT=
+        figure      keeps the current figure
+        """
+
+        # Initializing the figure to be plotted to
+        if figure is None:
+            figure = plt.figure()
+            ax1 = figure.add_subplot(1, 2, 1)
+            ax2 = figure.add_subplot(1, 2, 2)
+
+        else:
+            ax1 = figure.axes[0]
+            ax2 = figure.axes[1]
+        
+        # Plotting the data
+        if (((xdata2 is None) and (ydata2 is None)) and (subplotnumber == None)):
+            ax1.plot(xdata1, ydata1, color=self.colors[linenumber1], linestyle='-', label = lab1)                                  # 1 Data in first plot
+        
+        elif (((xdata2 is None) and (ydata2 is None)) and (subplotnumber != None)):
+            figure.axes[subplotnumber].plot(xdata1, ydata1, color=self.colors[linenumber1], linestyle='-', label = lab1)           # 1 Data in chosen plot
+        
+        elif (subplotnumber == None):
+            figure.axes[0].plot(xdata1, ydata1, color=self.colors[0], linestyle= '-', label = lab1)
+            figure.axes[1].plot(xdata2, ydata2, color=self.colors[7], linestyle= '-', label = lab2)                                # 2 Data in 2 plots
+        
+        elif (subplotnumber != None):
+            figure.axes[subplotnumber].plot(xdata1, ydata1, color=self.colors[linenumber1], linestyle= '-', label = lab1)
+            figure.axes[subplotnumber].plot(xdata2, ydata2, color=self.colors[linenumber2], linestyle= '-', label = lab2)          # 2 Data in 1 plot
+        
+        else:
+            pass
+        
+        return figure
+        
+
+    def plot2by1(self, xdata1, ydata1, xdata2=None, ydata2=None, lab1 = '', lab2 = '', figure=None, subplotnumber=None, linenumber1=0, linenumber2=1):
+        """
+        =INPUT=
+        xdata       data that should be plotted on x axis
+        ydata       data that should be plotted on y axis
+        lab         label that should be given to the data
+        figure      figure data should be plotted on, initialized to be none
+
+        =OUTPUT=
+        figure      keeps the current figure
+        """
+
+        # Initializing the figure to be plotted to
+        if figure is None:
+            figure = plt.figure()
+            ax1 = figure.add_subplot(2, 1, 1)
+            ax2 = figure.add_subplot(2, 1, 2)
+
+        else:
+            ax1 = figure.axes[0]
+            ax2 = figure.axes[1]
+        
+        # Plotting the data
+        if (((xdata2 is None) and (ydata2 is None)) and (subplotnumber == None)):
+            ax1.plot(xdata1, ydata1, color=self.colors[linenumber1], linestyle='-', label = lab1)                                  # 1 Data in first plot
+        
+        elif (((xdata2 is None) and (ydata2 is None)) and (subplotnumber != None)):
+            figure.axes[subplotnumber].plot(xdata1, ydata1, color=self.colors[linenumber1], linestyle='-', label = lab1)           # 1 Data in chosen plot
+        
+        elif (subplotnumber == None):
+            figure.axes[0].plot(xdata1, ydata1, color=self.colors[0], linestyle= '-', label = lab1)
+            figure.axes[1].plot(xdata2, ydata2, color=self.colors[7], linestyle= '-', label = lab2)                                # 2 Data in 2 plots
+        
+        elif (subplotnumber != None):
+            figure.axes[subplotnumber].plot(xdata1, ydata1, color=self.colors[linenumber1], linestyle= '-', label = lab1)
+            figure.axes[subplotnumber].plot(xdata2, ydata2, color=self.colors[linenumber2], linestyle= '-', label = lab2)          # 2 Data in 1 plot
+        
+        else:
+            pass
+        
+        return figure
+        
+
     def show_plot(self, figure, x_lim, y_lim, y_label, x_label, title, backgroundcolor=(0.827, 0.827, 0.827), legend=False):
         """
         =INPUT=
