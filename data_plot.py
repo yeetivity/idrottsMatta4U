@@ -213,16 +213,38 @@ class DataPlot(object):
         
         return figure
 
-    def kalAccPlot(self, Data, figure=None):
-        if (figure == None):
-            figure, ax = plt.subplots(1, 3)
-            time = np.insert(self.time[0], 0, 0)
-            ax[0].plot(time, Data[0][2])
-            ax[1].plot(time, Data[0][1])
-            ax[2].plot(time, Data[0][0])
-        else:
-            ax = figure.axes[0]
 
+    def plot1by3(   self, xdata1, ydata1, xdata2=None, ydata2=None, xdata3=None, ydata3=None,
+                    lab1 = '', lab2 = '', lab3= '', figure=None, subplotnumber=None,
+                    linenumber1=0, linenumber2=1, linenumber3=2):
+        """
+        =INPUT=
+        xdata       data that should be plotted on x axis
+        ydata       data that should be plotted on y axis
+        lab         label that should be given to the data
+        figure      figure data should be plotted on, initialized to be none
+
+        =OUTPUT=
+        figure      keeps the current figure
+        """
+
+        # Initializing the figure to be plotted to
+        if figure is None:
+            figure = plt.figure()
+            ax1 = figure.add_subplot(1, 3, 1)
+            ax2 = figure.add_subplot(1, 3, 2)
+            ax3 = figure.add_subplot(1, 3, 3)
+
+        else:
+            pass
+        
+        # Plotting the data
+        # 1 Data per 1 subplot
+        ax1.plot(xdata1, ydata1, color=self.colors[linenumber1], linestyle='-', label = lab1)
+        ax2.plot(xdata2, ydata2, color=self.colors[linenumber2], linestyle='-', label = lab2)
+        ax3.plot(xdata3, ydata3, color=self.colors[linenumber3], linestyle='-', label = lab3)
+
+        
         return figure
 
 
