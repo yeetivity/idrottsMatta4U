@@ -153,7 +153,43 @@ class DataPlot(object):
             pass
         
         return figure
+
+
+    def plot2by2(self, xdata1, ydata1, xdata2=None, ydata2=None, xdata3=None, ydata3=None,
+                xdata4=None, ydata4=None, lab1 = '', lab2 = '', lab3= '', lab4= '', figure=None, subplotnumber=None,
+                linenumber1=0, linenumber2=1, linenumber3=2, linenumber4=3):
+        """
+        =INPUT=
+        xdata       data that should be plotted on x axis
+        ydata       data that should be plotted on y axis
+        lab         label that should be given to the data
+        figure      figure data should be plotted on, initialized to be none
+
+        =OUTPUT=
+        figure      keeps the current figure
+        """
+
+        # Initializing the figure to be plotted to
+        if figure is None:
+            figure = plt.figure()
+            ax1 = figure.add_subplot(2, 2, 1)
+            ax2 = figure.add_subplot(2, 2, 2)
+            ax3 = figure.add_subplot(2, 2, 3)
+            ax4 = figure.add_subplot(2, 2, 4)
+
+        else:
+            pass
         
+        # Plotting the data
+        # 1 Data per 1 subplot
+        ax1.plot(xdata1, ydata1, color=self.colors[linenumber1], linestyle='-', label = lab1)
+        ax2.plot(xdata2, ydata2, color=self.colors[linenumber2], linestyle='-', label = lab2)
+        ax3.plot(xdata3, ydata3, color=self.colors[linenumber3], linestyle='-', label = lab3)
+        ax4.plot(xdata4, ydata4, color=self.colors[linenumber4], linestyle='-', label = lab4)
+
+        
+        return figure
+
 
     def show_plot(self, figure, x_lim, y_lim, y_label, x_label, title, backgroundcolor=(0.827, 0.827, 0.827), legend=False):
         """

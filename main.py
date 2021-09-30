@@ -57,7 +57,6 @@ kalData = processed_data.complexKalmanFilter()
 data_plot = DataPlot()
 accPlot = data_plot.plot1by1(all_csv_data[experiment]['time_a'], combAcc[experiment], lab='combined acceleration')
 accPlot = data_plot.plot1by1(all_csv_data[experiment]['time_a'], all_csv_data[experiment]['accX'], lab='raw x acceleration', figure=accPlot, linenumber=6)
-
 # Finish the automatic scaling --> automatic determination of ranges in plot1by1 function, also for multiple lines. 
 data_plot.show_plot(accPlot, [0,all_csv_data[experiment]['time_a'][-1]], [ (combAcc[experiment].min() - padding),(combAcc[experiment].max() + padding)],
                      'magnitude', 'timestamp', title='Combined acceleration and raw x acceleration', legend=True)
@@ -70,10 +69,19 @@ accSubPlot = data_plot.plot2by1(all_csv_data[experiment]['time_a'], all_csv_data
                                 all_csv_data[experiment]['time_a'], all_csv_data[experiment]['accZ'],
                                 lab1= 'accY', lab2='accZ', figure= accSubPlot, subplotnumber=1,
                                 linenumber1 = 1, linenumber2 = 4)
-
 # Add automatic scaling
 data_plot.show_plot(accSubPlot, [0,20000], [-10, 30],
                     'magnitude', 'timestamp', title='Combined acceleration and raw accelerations', legend=True)
+
+# Plot everything in seperate subplots
+accSubSubPlot = data_plot.plot2by2( all_csv_data[experiment]['time_a'], combAcc[experiment], 
+                                    all_csv_data[experiment]['time_a'], all_csv_data[experiment]['accX'],
+                                    all_csv_data[experiment]['time_a'], all_csv_data[experiment]['accY'],
+                                    all_csv_data[experiment]['time_a'], all_csv_data[experiment]['accZ'],
+                                    lab1= 'combAcc', lab2= 'accX', lab3='accY', lab4='accZ')
+data_plot.show_plot(accSubSubPlot, [0,20000], [-10, 30],
+                    'magnitude', 'timestamp', title='Combined acceleration and raw accelerations', legend=True)
+
 
 # accXplot = data_plot.AccComparePlot()
 # positionXplot = data_plot.SensorPositionComparePlot()
