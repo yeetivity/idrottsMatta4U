@@ -97,13 +97,7 @@ KalComplex = data_plot.plot3by1(    all_csv_data[experiment]['time_a'], kalData[
 data_plot.show_plot(KalComplex, [0,20000], [-10, 30],
                     'magnitude', 'time', title='Complex Kalman Filter results', legend=True)
 
-
-# kalAccPlot = data_plot.kalAccPlot(kalData)
-
-
-   
-# data_plot.show_plot(figure=kalAccPlot, x_lim=[0, 20000], y_lim=[-50,50], y_label= 'magnitude', x_label='timestamp',
-#                     title= 'complex kalman Filter', legend=True)            
-
-
+"""
+------------------------------CODE ENDING ------------------------------
+"""
 print("--- %s seconds ---" % (t.time()- start_time))
