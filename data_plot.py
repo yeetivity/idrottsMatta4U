@@ -6,7 +6,7 @@ class DataPlot(object):
     Class to plot the data that is imported from DataRead
     """
 
-    def __init__(self,readdata):
+    def __init__(self):
         """
         =INPUT=
         readdata:
@@ -15,79 +15,46 @@ class DataPlot(object):
         =NOTES=
             In the JSON files the gyrometer data is somehow called magnetometer data, therefore we correct this mistake here by renaming mag into gyr
         """
-        self.storage = readdata
 
-        # Initialise empty arrays
-        self.accX = []
-        self.accY = []
-        self.accZ = []
-
-        self.gyrX = []
-        self.gyrY = []
-        self.gyrZ = []
-
-        self.time = []
-
-        self.samples = []
-
-        # Fill the arrays
-        for i in range(len(readdata)):
-            self.accX.append(readdata[i]['accX'])
-            self.accY.append(readdata[i]['accY'])
-            self.accZ.append(readdata[i]['accZ'])
-
-            self.gyrX.append(readdata[i]['gyrX'])
-            self.gyrY.append(readdata[i]['gyrY'])
-            self.gyrZ.append(readdata[i]['gyrZ'])
-
-            self.time.append(readdata[i]['time_a'])
-
-        for ii in range(len(readdata[0]['accX'])):
-            self.samples.append(ii + 1) # append the sample number to the list, first sample is 1
-
-        for j in range (len(self.time)):
-            self.time[j] = np.array(self.time[j])
-            self.time[j] = self.time[j] - self.time[j][0]
-
+        self.colors = ( (0, 0, 0.99608),
+                        (0, 0.50196, 0.99608),
+                        (0, 0.99608, 0.99608),
+                        (0.50196, 0.99608, 0.50196),
+                        (0.99608, 0.99608, 0),
+                        (0.99608, 0.50196, 0),
+                        (0.99608, 0, 0),
+                        (0.50196, 0, 0))                                # Some non standard colors Todo: reconfigure with more 'space' between colors
+        self.marker = ('o' , 'v', 'x', '+', 'd')                        # Some markers
 
         return
+    
+    
+    def plot1by1(self, xdata, ydata, lab='', figure=None, linenumber=1):
+        """
+        =INPUT=
+        xdata       data that should be plotted on x axis
+        ydata       data that should be plotted on y axis
+        label       label that should be given to the data
+        figure      figure data should be plotted on, initialized to be none
+        linenumber  number of the line you are plotting
 
-    def AccComparePlot(self, figure=None):
+        =OUTPUT=
+        figure      keeps the current figure
+        """
 
-        # Initialise the figure
-        figure, ax = plt.subplots(2, 2)
+        # Initializing the figure to be plotted to
+        if figure is None:
+            figure = plt.figure()
+            ax = figure.add_subplot(1, 1, 1)
 
-        #Plot data on the figure
-        ax[0, 0].plot(self.time[0], self.accX[0], color='blue', label='5km/h')
-        ax[0, 1].plot(self.time[1], self.accX[1], color='red', label='12.5km/h')
-        ax[1, 0].plot(self.time[2], self.accX[2], color='green', label='20km/h')
-        ax[1, 1].plot(self.time[3], self.accX[3], color='purple', label='sprint')
-
-        return figure
-
-    def SensorPositionComparePlot(self, figure=None):
-
-        # Initialise the figure
-        figure, ax = plt.subplots(2, 2)
-
-        #Plot data on the figure
-        ax[0, 0].plot(self.time[0], self.accX[0], color='blue', label='5km/h, sensor on foot')
-        ax[0, 1].plot(self.time[4], self.accX[4], color='blue', linestyle= '--', label='5km/h, sensor on leg')
-        ax[1, 0].plot(self.time[1], self.accX[1], color='green', label='sprint, sensor on foot')
-        ax[1, 1].plot(self.time[5], self.accX[5], color='green', linestyle= '--', label='sprint, sensor on leg')
-
-        return figure
-
-    def simple_kalAccPlot(self, kalAcc_Data ,figure=None):
-        if (figure == None):
-            figure, ax = plt.subplots(1, 1)
-            ax.plot(self.time[0], kalAcc_Data[0], label='Kalman Filtered data, 1D')
         else:
             ax = figure.axes[0]
-
-        ax.plot(self.time[0], kalAcc_Data[0])
+        
+        # Plotting the data
+        ax.plot(xdata, ydata, color=self.colors[linenumber-1], linestyle= '-', label = lab)
 
         return figure
+
 
     def kalAccPlot(self, Data, figure=None):
         if (figure == None):
