@@ -102,5 +102,18 @@ class DataRead():
                         self.transformeddata[i]['gyrX'].append(float(data_container[i][jj][1]))
                         self.transformeddata[i]['gyrY'].append(float(data_container[i][jj][2]))
                         self.transformeddata[i]['gyrZ'].append(float(data_container[i][jj][3]))
+            
+            # Check if times are the same
+            if (self.transformeddata[i]['time_a'] == self.transformeddata[i]['time_g']):
+                # make timestamps relative to each other
+                if ((self.transformeddata[i]['time_a'] != 0) and (self.transformeddata[i]['time_g'] != 0)):
+                    self.transformeddata[i]['time_a'] = np.array(self.transformeddata[i]['time_a']) - self.transformeddata[i]['time_a'][0]
+                    self.transformeddata[i]['time_g'] = np.array(self.transformeddata[i]['time_g']) - self.transformeddata[i]['time_g'][0]
+            # If one of the two is still empty do nothing
+            elif ((self.transformeddata[i]['time_g'] == []) or (self.transformeddata[i]['time_a'] == [])):
+                pass
+            # If they are not the same
+            else:
+                print('ERROR, timearrays are no the same')
 
         return self.transformeddata
