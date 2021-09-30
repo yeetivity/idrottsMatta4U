@@ -73,7 +73,7 @@ accSubPlot = data_plot.plot2by1(all_csv_data[experiment]['time_a'], all_csv_data
 data_plot.show_plot(accSubPlot, [0,20000], [-10, 30],
                     'magnitude', 'timestamp', title='Combined acceleration and raw accelerations', legend=True)
 
-# Plot everything in seperate subplots
+# Plot all accelerations in seperate subplots
 accSubSubPlot = data_plot.plot2by2( all_csv_data[experiment]['time_a'], combAcc[experiment], 
                                     all_csv_data[experiment]['time_a'], all_csv_data[experiment]['accX'],
                                     all_csv_data[experiment]['time_a'], all_csv_data[experiment]['accY'],
@@ -82,28 +82,28 @@ accSubSubPlot = data_plot.plot2by2( all_csv_data[experiment]['time_a'], combAcc[
 data_plot.show_plot(accSubSubPlot, [0,20000], [-10, 30],
                     'magnitude', 'timestamp', title='Combined acceleration and raw accelerations', legend=True)
 
+# Plot kalman filter
+KalvsCom = data_plot.plot2by1( all_csv_data[experiment]['time_a'], combAcc[experiment], 
+                    all_csv_data[experiment]['time_a'], simple_kalAcc[experiment],
+                    lab1 = 'combAcc', lab2= 'kalman filtered combAcc')
+data_plot.show_plot(KalvsCom, [0,20000], [-10, 30],
+                    'magnitude', 'timestamp', title='Combined acceleration and raw accelerations', legend=True)
 
-# accXplot = data_plot.AccComparePlot()
-# positionXplot = data_plot.SensorPositionComparePlot()
-# # combPlot = data_plot.kalAccPlot(combAcc)
-# simplekalAccplot = data_plot.simple_kalAccPlot(simple_kalAcc)
-# simplekalAccPlot = data_plot.simple_kalAccPlot(combAcc, figure= simplekalAccplot)
+# Plot complex kalman filter
+KalComplex = data_plot.plot3by1(    all_csv_data[experiment]['time_a'], kalData[experiment][0], 
+                                    all_csv_data[experiment]['time_a'], kalData[experiment][1],
+                                    all_csv_data[experiment]['time_a'], kalData[experiment][2],
+                                    lab1= 'position', lab2 ='speed', lab3='acceleration')
+data_plot.show_plot(KalComplex, [0,20000], [-10, 30],
+                    'magnitude', 'time', title='Complex Kalman Filter results', legend=True)
+
 
 # kalAccPlot = data_plot.kalAccPlot(kalData)
 
 
-
-# data_plot.show_plot(figure=accXplot, x_lim=[0,250], y_lim=[-500,500], y_label= 'magnitude', x_label='sample number',
-#                     title= 'X accelerations for different speeds', legend=True)
-# data_plot.show_plot(figure=positionXplot, x_lim=[0,250], y_lim=[-500,500], y_label= 'magnitude', x_label='sample number',
-#                     title= 'X accelerations for different sensor positions', legend=True) 
-# data_plot.show_plot(figure=simplekalAccplot, x_lim=[0, 20000], y_lim=[-50,50], y_label= 'magnitude', x_label='timestamp',
-#                     title= 'kalman Filter', legend=True)     
+   
 # data_plot.show_plot(figure=kalAccPlot, x_lim=[0, 20000], y_lim=[-50,50], y_label= 'magnitude', x_label='timestamp',
 #                     title= 'complex kalman Filter', legend=True)            
 
-# Process the raw data with filters and such
-
-# Plot the processed data
 
 print("--- %s seconds ---" % (t.time()- start_time))

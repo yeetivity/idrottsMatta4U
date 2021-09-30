@@ -104,7 +104,7 @@ class DataProcess(object):
                 P = np.dot(np.subtract(1, np.dot(K,H)), P)
                 
                 X = np.hstack((X, x))
-            
+            X = X[:,1:]
             self.kalData.append(X)
 
 
