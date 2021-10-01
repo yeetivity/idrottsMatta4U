@@ -6,7 +6,7 @@ class DataPlot(object):
     Class to plot the data that is imported from DataRead
     """
 
-    def __init__(self,readdata):
+    def __init__(self):
         """
         =INPUT=
         readdata:
@@ -15,91 +15,238 @@ class DataPlot(object):
         =NOTES=
             In the JSON files the gyrometer data is somehow called magnetometer data, therefore we correct this mistake here by renaming mag into gyr
         """
-        self.storage = readdata
 
-        # Initialise empty arrays
-        self.accX = []
-        self.accY = []
-        self.accZ = []
-
-        self.gyrX = []
-        self.gyrY = []
-        self.gyrZ = []
-
-        self.time = []
-
-        self.samples = []
-
-        # Fill the arrays
-        for i in range(len(readdata)):
-            self.accX.append(readdata[i]['accX'])
-            self.accY.append(readdata[i]['accY'])
-            self.accZ.append(readdata[i]['accZ'])
-
-            self.gyrX.append(readdata[i]['gyrX'])
-            self.gyrY.append(readdata[i]['gyrY'])
-            self.gyrZ.append(readdata[i]['gyrZ'])
-
-            self.time.append(readdata[i]['time_a'])
-
-        for ii in range(len(readdata[0]['accX'])):
-            self.samples.append(ii + 1) # append the sample number to the list, first sample is 1
-
-        for j in range (len(self.time)):
-            self.time[j] = np.array(self.time[j])
-            self.time[j] = self.time[j] - self.time[j][0]
-
+        self.colors = ( (0, 0, 0.99608),
+                        (0, 0.50196, 0.99608),
+                        (0, 0.99608, 0.99608),
+                        (0.50196, 0.99608, 0.50196),
+                        (0.99608, 0.99608, 0),
+                        (0.99608, 0.50196, 0),
+                        (0.99608, 0, 0),
+                        (0.50196, 0, 0))                                # Some non standard colors Todo: reconfigure with more 'space' between colors
+        self.marker = ('o' , 'v', 'x', '+', 'd')                        # Some markers
 
         return
+    
+    
+    def plot1by1(self, xdata, ydata, lab='', figure=None, linenumber=1):
+        """
+        =INPUT=
+        xdata       data that should be plotted on x axis
+        ydata       data that should be plotted on y axis
+        label       label that should be given to the data
+        figure      figure data should be plotted on, initialized to be none
+        linenumber  number of the line you are plotting
 
-    def AccComparePlot(self, figure=None):
+        =OUTPUT=
+        figure      keeps the current figure
+        """
 
-        # Initialise the figure
-        figure, ax = plt.subplots(2, 2)
+        # Initializing the figure to be plotted to
+        if figure is None:
+            figure = plt.figure()
+            ax = figure.add_subplot(1, 1, 1)
 
-        #Plot data on the figure
-        ax[0, 0].plot(self.time[0], self.accX[0], color='blue', label='5km/h')
-        ax[0, 1].plot(self.time[1], self.accX[1], color='red', label='12.5km/h')
-        ax[1, 0].plot(self.time[2], self.accX[2], color='green', label='20km/h')
-        ax[1, 1].plot(self.time[3], self.accX[3], color='purple', label='sprint')
-
-        return figure
-
-    def SensorPositionComparePlot(self, figure=None):
-
-        # Initialise the figure
-        figure, ax = plt.subplots(2, 2)
-
-        #Plot data on the figure
-        ax[0, 0].plot(self.time[0], self.accX[0], color='blue', label='5km/h, sensor on foot')
-        ax[0, 1].plot(self.time[4], self.accX[4], color='blue', linestyle= '--', label='5km/h, sensor on leg')
-        ax[1, 0].plot(self.time[1], self.accX[1], color='green', label='sprint, sensor on foot')
-        ax[1, 1].plot(self.time[5], self.accX[5], color='green', linestyle= '--', label='sprint, sensor on leg')
-
-        return figure
-
-    def simple_kalAccPlot(self, kalAcc_Data ,figure=None):
-        if (figure == None):
-            figure, ax = plt.subplots(1, 1)
-            ax.plot(self.time[0], kalAcc_Data[0], label='Kalman Filtered data, 1D')
         else:
             ax = figure.axes[0]
-
-        ax.plot(self.time[0], kalAcc_Data[0])
+        
+        # Plotting the data
+        ax.plot(xdata, ydata, color=self.colors[linenumber-1], linestyle= '-', label = lab)
 
         return figure
 
-    def kalAccPlot(self, Data, figure=None):
-        if (figure == None):
-            figure, ax = plt.subplots(1, 3)
-            time = np.insert(self.time[0], 0, 0)
-            ax[0].plot(time, Data[0][2])
-            ax[1].plot(time, Data[0][1])
-            ax[2].plot(time, Data[0][0])
+
+    def plot1by2(   self, xdata1, ydata1, xdata2=None, ydata2=None, lab1 = '', lab2 = '',
+                    figure=None, subplotnumber=None, linenumber1=0, linenumber2=1):
+        """
+        =INPUT=
+        xdata       data that should be plotted on x axis
+        ydata       data that should be plotted on y axis
+        lab         label that should be given to the data
+        figure      figure data should be plotted on, initialized to be none
+
+        =OUTPUT=
+        figure      keeps the current figure
+        """
+
+        # Initializing the figure to be plotted to
+        if figure is None:
+            figure = plt.figure()
+            ax1 = figure.add_subplot(1, 2, 1)
+            ax2 = figure.add_subplot(1, 2, 2)
+
         else:
-            ax = figure.axes[0]
-
+            ax1 = figure.axes[0]
+            ax2 = figure.axes[1]
+        
+        # Plotting the data
+        if (((xdata2 is None) and (ydata2 is None)) and (subplotnumber == None)):
+            ax1.plot(xdata1, ydata1, color=self.colors[linenumber1], linestyle='-', label = lab1)                                  # 1 Data in first plot
+        
+        elif (((xdata2 is None) and (ydata2 is None)) and (subplotnumber != None)):
+            figure.axes[subplotnumber].plot(xdata1, ydata1, color=self.colors[linenumber1], linestyle='-', label = lab1)           # 1 Data in chosen plot
+        
+        elif (subplotnumber == None):
+            figure.axes[0].plot(xdata1, ydata1, color=self.colors[0], linestyle= '-', label = lab1)
+            figure.axes[1].plot(xdata2, ydata2, color=self.colors[7], linestyle= '-', label = lab2)                                # 2 Data in 2 plots
+        
+        elif (subplotnumber != None):
+            figure.axes[subplotnumber].plot(xdata1, ydata1, color=self.colors[linenumber1], linestyle= '-', label = lab1)
+            figure.axes[subplotnumber].plot(xdata2, ydata2, color=self.colors[linenumber2], linestyle= '-', label = lab2)          # 2 Data in 1 plot
+        
+        else:
+            pass
+        
         return figure
+        
+
+    def plot2by1(   self, xdata1, ydata1, xdata2=None, ydata2=None, lab1 = '', lab2 = '',
+                    figure=None, subplotnumber=None, linenumber1=0, linenumber2=1):
+        """
+        =INPUT=
+        xdata       data that should be plotted on x axis
+        ydata       data that should be plotted on y axis
+        lab         label that should be given to the data
+        figure      figure data should be plotted on, initialized to be none
+
+        =OUTPUT=
+        figure      keeps the current figure
+        """
+
+        # Initializing the figure to be plotted to
+        if figure is None:
+            figure = plt.figure()
+            ax1 = figure.add_subplot(2, 1, 1)
+            ax2 = figure.add_subplot(2, 1, 2)
+
+        else:
+            ax1 = figure.axes[0]
+            ax2 = figure.axes[1]
+        
+        # Plotting the data
+        if (((xdata2 is None) and (ydata2 is None)) and (subplotnumber == None)):
+            ax1.plot(xdata1, ydata1, color=self.colors[linenumber1], linestyle='-', label = lab1)                                  # 1 Data in first plot
+        
+        elif (((xdata2 is None) and (ydata2 is None)) and (subplotnumber != None)):
+            figure.axes[subplotnumber].plot(xdata1, ydata1, color=self.colors[linenumber1], linestyle='-', label = lab1)           # 1 Data in chosen plot
+        
+        elif (subplotnumber == None):
+            figure.axes[0].plot(xdata1, ydata1, color=self.colors[0], linestyle= '-', label = lab1)
+            figure.axes[1].plot(xdata2, ydata2, color=self.colors[7], linestyle= '-', label = lab2)                                # 2 Data in 2 plots
+        
+        elif (subplotnumber != None):
+            figure.axes[subplotnumber].plot(xdata1, ydata1, color=self.colors[linenumber1], linestyle= '-', label = lab1)
+            figure.axes[subplotnumber].plot(xdata2, ydata2, color=self.colors[linenumber2], linestyle= '-', label = lab2)          # 2 Data in 1 plot
+        
+        else:
+            pass
+        
+        return figure
+
+
+    def plot2by2(   self, xdata1, ydata1, xdata2=None, ydata2=None, xdata3=None, ydata3=None,
+                    xdata4=None, ydata4=None, lab1 = '', lab2 = '', lab3= '', lab4= '', figure=None, subplotnumber=None,
+                    linenumber1=0, linenumber2=1, linenumber3=2, linenumber4=3):
+        """
+        =INPUT=
+        xdata       data that should be plotted on x axis
+        ydata       data that should be plotted on y axis
+        lab         label that should be given to the data
+        figure      figure data should be plotted on, initialized to be none
+
+        =OUTPUT=
+        figure      keeps the current figure
+        """
+
+        # Initializing the figure to be plotted to
+        if figure is None:
+            figure = plt.figure()
+            ax1 = figure.add_subplot(2, 2, 1)
+            ax2 = figure.add_subplot(2, 2, 2)
+            ax3 = figure.add_subplot(2, 2, 3)
+            ax4 = figure.add_subplot(2, 2, 4)
+
+        else:
+            pass
+        
+        # Plotting the data
+        # 1 Data per 1 subplot
+        ax1.plot(xdata1, ydata1, color=self.colors[linenumber1], linestyle='-', label = lab1)
+        ax2.plot(xdata2, ydata2, color=self.colors[linenumber2], linestyle='-', label = lab2)
+        ax3.plot(xdata3, ydata3, color=self.colors[linenumber3], linestyle='-', label = lab3)
+        ax4.plot(xdata4, ydata4, color=self.colors[linenumber4], linestyle='-', label = lab4)
+
+        
+        return figure
+
+
+    def plot3by1(   self, xdata1, ydata1, xdata2=None, ydata2=None, xdata3=None, ydata3=None,
+                    lab1 = '', lab2 = '', lab3= '', figure=None, subplotnumber=None,
+                    linenumber1=0, linenumber2=1, linenumber3=2):
+        """
+        =INPUT=
+        xdata       data that should be plotted on x axis
+        ydata       data that should be plotted on y axis
+        lab         label that should be given to the data
+        figure      figure data should be plotted on, initialized to be none
+
+        =OUTPUT=
+        figure      keeps the current figure
+        """
+
+        # Initializing the figure to be plotted to
+        if figure is None:
+            figure = plt.figure()
+            ax1 = figure.add_subplot(3, 1, 1)
+            ax2 = figure.add_subplot(3, 1, 2)
+            ax3 = figure.add_subplot(3, 1, 3)
+
+        else:
+            pass
+        
+        # Plotting the data
+        # 1 Data per 1 subplot
+        ax1.plot(xdata1, ydata1, color=self.colors[linenumber1], linestyle='-', label = lab1)
+        ax2.plot(xdata2, ydata2, color=self.colors[linenumber2], linestyle='-', label = lab2)
+        ax3.plot(xdata3, ydata3, color=self.colors[linenumber3], linestyle='-', label = lab3)
+
+        
+        return figure
+
+
+    def plot1by3(   self, xdata1, ydata1, xdata2=None, ydata2=None, xdata3=None, ydata3=None,
+                    lab1 = '', lab2 = '', lab3= '', figure=None, subplotnumber=None,
+                    linenumber1=0, linenumber2=1, linenumber3=2):
+        """
+        =INPUT=
+        xdata       data that should be plotted on x axis
+        ydata       data that should be plotted on y axis
+        lab         label that should be given to the data
+        figure      figure data should be plotted on, initialized to be none
+
+        =OUTPUT=
+        figure      keeps the current figure
+        """
+
+        # Initializing the figure to be plotted to
+        if figure is None:
+            figure = plt.figure()
+            ax1 = figure.add_subplot(1, 3, 1)
+            ax2 = figure.add_subplot(1, 3, 2)
+            ax3 = figure.add_subplot(1, 3, 3)
+
+        else:
+            pass
+        
+        # Plotting the data
+        # 1 Data per 1 subplot
+        ax1.plot(xdata1, ydata1, color=self.colors[linenumber1], linestyle='-', label = lab1)
+        ax2.plot(xdata2, ydata2, color=self.colors[linenumber2], linestyle='-', label = lab2)
+        ax3.plot(xdata3, ydata3, color=self.colors[linenumber3], linestyle='-', label = lab3)
+
+        
+        return figure
+
 
     def show_plot(self, figure, x_lim, y_lim, y_label, x_label, title, backgroundcolor=(0.827, 0.827, 0.827), legend=False):
         """
