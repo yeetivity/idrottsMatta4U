@@ -5,7 +5,7 @@ usable dictionaries and finally visible graphs
 
 import matplotlib
 from matplotlib.pyplot import figure
-matplotlib.use("TkAGG")
+matplotlib.use("TkAgg")
 import numpy as np
 import os
 import glob

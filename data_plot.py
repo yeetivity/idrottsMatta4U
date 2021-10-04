@@ -16,14 +16,14 @@ class DataPlot(object):
             In the JSON files the gyrometer data is somehow called magnetometer data, therefore we correct this mistake here by renaming mag into gyr
         """
 
-        self.colors = ( (0, 0, 0.99608),
-                        (0, 0.50196, 0.99608),
-                        (0, 0.99608, 0.99608),
-                        (0.50196, 0.99608, 0.50196),
-                        (0.99608, 0.99608, 0),
-                        (0.99608, 0.50196, 0),
-                        (0.99608, 0, 0),
-                        (0.50196, 0, 0))                                # Some non standard colors Todo: reconfigure with more 'space' between colors
+        self.colors = ( (0, 0, 0.99608),                                # Blue
+                        (0, 0.50196, 0.99608),                          # A bit less blue
+                        (0, 0.99608, 0.99608),                          # A lot less blue, a bit more yellow
+                        (0.50196, 0.99608, 0.50196),                    # Even more yellow
+                        (0.99608, 0.99608, 0),                          # fully yellow
+                        (0.99608, 0.50196, 0),                          # bit less yellow, bit more red
+                        (0.99608, 0, 0),                                # A lot more red
+                        (0.50196, 0, 0))                                # 'You have spilled wine' red
         self.marker = ('o' , 'v', 'x', '+', 'd')                        # Some markers
 
         return
