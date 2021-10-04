@@ -44,8 +44,12 @@ all_csv_data = data.transform_csvformat(all_csv_gyrdata, acc=False)
 processed_data = DataProcess(all_csv_data)
 combAcc = processed_data.combineAccelerations()
 simple_kalAcc = processed_data.simpleKalmanFilter()
-kalData = processed_data.complexKalmanFilter()
 
+# combined acceleration Kalman
+accKalData = processed_data.complexKalmanFilter(combAcc)
+
+# gyro Kalman    
+#gyroKalData = processed_data.complexKalmanFilterGyro(combAcc, A, P, Q, H)
 
 
 
@@ -90,9 +94,9 @@ data_plot.show_plot(KalvsCom, [0,20000], [-10, 30],
                     'magnitude', 'timestamp', title='Combined acceleration and raw accelerations', legend=True)
 
 # Plot complex kalman filter
-KalComplex = data_plot.plot3by1(    all_csv_data[experiment]['time_a'], kalData[experiment][0], 
-                                    all_csv_data[experiment]['time_a'], kalData[experiment][1],
-                                    all_csv_data[experiment]['time_a'], kalData[experiment][2],
+KalComplex = data_plot.plot3by1(    all_csv_data[experiment]['time_a'], accKalData[experiment][0], 
+                                    all_csv_data[experiment]['time_a'], accKalData[experiment][1],
+                                    all_csv_data[experiment]['time_a'], accKalData[experiment][2],
                                     lab1= 'position', lab2 ='speed', lab3='acceleration')
 data_plot.show_plot(KalComplex, [0,20000], [-10, 30],
                     'magnitude', 'time', title='Complex Kalman Filter results', legend=True)
