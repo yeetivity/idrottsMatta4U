@@ -5,7 +5,7 @@ usable dictionaries and finally visible graphs
 
 import matplotlib
 from matplotlib.pyplot import figure
-matplotlib.use("TkAGG")
+matplotlib.use("Qt5Agg")
 import numpy as np
 import os
 import glob
@@ -17,7 +17,7 @@ import time as t
 start_time = t.time()
 
 # A few settings
-experiment = 0
+experiment = 3
 padding = 5             # Determines how much space automatic scaling plots have
 
 """
@@ -46,7 +46,7 @@ combAcc = processed_data.combineAccelerations()
 simple_kalAcc = processed_data.simpleKalmanFilter()
 kalData = processed_data.complexKalmanFilter()
 
-
+emwaData = processed_data.emwaFilter(combAcc[experiment],0.85) #Choose data you want to apply EMWA filter on, and choose alpha value
 
 
 """
@@ -97,6 +97,11 @@ KalComplex = data_plot.plot3by1(    all_csv_data[experiment]['time_a'], kalData[
 data_plot.show_plot(KalComplex, [0,20000], [-10, 30],
                     'magnitude', 'time', title='Complex Kalman Filter results', legend=True)
 
+# Plot EMWA filter
+emwaPlot = data_plot.plot1by1(all_csv_data[experiment]['time_a'], emwaData, lab='EMWA filtered combined acceleration')
+emwaPlot = data_plot.plot1by1(all_csv_data[experiment]['time_a'], combAcc[experiment], lab='combined acceleration', figure=emwaPlot, linenumber=6)
+data_plot.show_plot(emwaPlot, [0,20000], [-10, 30],
+                    'magnitude', 'time', title='EMWA filter', legend=True)
 """
 ------------------------------CODE ENDING ------------------------------
 """

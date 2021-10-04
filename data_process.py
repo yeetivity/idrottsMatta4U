@@ -14,6 +14,8 @@ class DataProcess(object):
         self.kalVel = []
         self.kalPos = []
         self.kalData = []
+        
+        self.emwaData = []
 
         return
 
@@ -111,9 +113,15 @@ class DataProcess(object):
         return self.kalData
     
     
-    def filter():
+    def emwaFilter(self,data,alpha):
         """
         If you don't want to sleep, make EMWA filter
         """
+        #Initialization
+        self.emwaData.append(data[0])
 
-        return
+        #Filtering
+        for k in range(1, len(data)):
+            self.emwaData.append(alpha*self.emwaData[k-1]+(1-alpha)*data[k])
+            
+        return self.emwaData
