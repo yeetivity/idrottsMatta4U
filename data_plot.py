@@ -29,7 +29,7 @@ class DataPlot(object):
         return
     
     
-    def plot1by1(self, xdata, ydata, lab='', figure=None, linenumber=1):
+    def plot1by1(self, xdata, ydata, lab='', figure=None, linenumber=1, points=False):
         """
         =INPUT=
         xdata       data that should be plotted on x axis
@@ -51,7 +51,12 @@ class DataPlot(object):
             ax = figure.axes[0]
         
         # Plotting the data
-        ax.plot(xdata, ydata, color=self.colors[linenumber-1], linestyle= '-', label = lab)
+        if points is False:
+            ax.plot(xdata, ydata, color=self.colors[linenumber-1], linestyle= '-', label = lab)
+
+        if points is True:
+            ax.plot(xdata, ydata, 'x',
+                markersize=8, markerfacecolor=(1, 1, 1, 0), markeredgecolor='k')
 
         return figure
 

@@ -14,6 +14,7 @@ class DataProcess(object):
         self.kalVel = []
         self.kalPos = []
         self.kalData = []
+        self.time = storeddata[s.experiment]['time_a']
         
         self.emwaData = []
         
@@ -130,10 +131,11 @@ class DataProcess(object):
         """
         """
 
-        K0 = 60         # Initial time interval threshold of Ki
+        K0 = 130        # Initial time interval threshold of Ki
+        Ki = K0
         alpha = 0.7     # Scale factor used to determine the time interval threshold
         W2 = 5          # Number of consecutive valleys
-        TH_pk = 1.9     # Peak detection threshold to exclude false detection
+        TH_pk = 40      # Peak detection threshold to exclude false detection
         TH_s = 190      # Fixed value to detect static states and determine whether to stop the update of K_i
         
         
@@ -141,21 +143,29 @@ class DataProcess(object):
         W1 = 3          # The window size of the acceleration-magnitude detector
         TH_vy = 20      # Valley detection threshold that utilized to detect the valleys 
 
-        maxima = [[],[]]     # Array with maxima     
+        maxima = [[],[]]     # Array with maxima
+        clean_maxima = [[],[]]     
         N_pk = 0        # Number of peaks
         # Valid valley detection
 
         # Valid peak detection
+        # 1. Maxima Detection
         for i in range(1,len(combAcc)-1):
             if ((combAcc[i] > combAcc[i+1]) and (combAcc[i] > combAcc[i-1]) and (combAcc[i] > TH_pk)):
                 maxima[0].append(combAcc[i])
-                maxima[1].append(i) #TODO Add index --> Should add timestamp later
+                maxima[1].append(self.time[i])
 
-        
+        # 2. Single Peak Detection with temporal threshold constraint
+        for j in range(0,len(maxima[0])-1):
+            if ((maxima[1][j+1]-maxima[1][j]) > Ki):    #Todo this part is not behaving correctly yet
+                clean_maxima[0].append(max(maxima[0][j], maxima[0][j+1]))
+                clean_maxima[1].append(maxima[1][j])    #Todo find a way to give the correct time
+                N_pk += 1
 
         # Adaptive thresholds determination
 
         # Adaptive zero-velocity detection
 
         # Results
-        return
+        print('Amount of steps:', N_pk)
+        return clean_maxima
