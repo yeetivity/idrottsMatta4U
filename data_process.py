@@ -1,4 +1,5 @@
 import numpy as np
+from settings import Settings as s
 
 class DataProcess(object):
     """
@@ -7,7 +8,6 @@ class DataProcess(object):
     def __init__(self, storeddata):
         self.storeddata = storeddata
 
-        self.gravity = 9.81
         self.combAcc = []
         self.simple_kalAcc = []
         self.kalAcc = []
@@ -16,7 +16,7 @@ class DataProcess(object):
         self.kalData = []
         
         self.emwaData = []
-
+        
         return
 
     
@@ -28,7 +28,7 @@ class DataProcess(object):
             self.combAcc.append(np.sqrt(np.square(self.storeddata[i]['accX']) + 
                                         np.square(self.storeddata[i]['accY']) +
                                         np.square(self.storeddata[i]['accZ']))
-                                        - self.gravity )
+                                        - s.gravity )
 
         return self.combAcc
 
@@ -115,7 +115,7 @@ class DataProcess(object):
     
     def emwaFilter(self,data,alpha):
         """
-        If you don't want to sleep, make EMWA filter
+        EMWA filter
         """
         #Initialization
         self.emwaData.append(data[0])
@@ -125,3 +125,37 @@ class DataProcess(object):
             self.emwaData.append(alpha*self.emwaData[k-1]+(1-alpha)*data[k])
             
         return self.emwaData
+
+    def stepRegistration(self, combAcc):
+        """
+        """
+
+        K0 = 60         # Initial time interval threshold of Ki
+        alpha = 0.7     # Scale factor used to determine the time interval threshold
+        W2 = 5          # Number of consecutive valleys
+        TH_pk = 1.9     # Peak detection threshold to exclude false detection
+        TH_s = 190      # Fixed value to detect static states and determine whether to stop the update of K_i
+        
+        
+        TH = 6          # Statistical value that used to distinguish the state of motion is intense or gentle  
+        W1 = 3          # The window size of the acceleration-magnitude detector
+        TH_vy = 20      # Valley detection threshold that utilized to detect the valleys 
+
+        maxima = [[],[]]     # Array with maxima     
+        N_pk = 0        # Number of peaks
+        # Valid valley detection
+
+        # Valid peak detection
+        for i in range(1,len(combAcc)-1):
+            if ((combAcc[i] > combAcc[i+1]) and (combAcc[i] > combAcc[i-1]) and (combAcc[i] > TH_pk)):
+                maxima[0].append(combAcc[i])
+                maxima[1].append(i) #TODO Add index --> Should add timestamp later
+
+        
+
+        # Adaptive thresholds determination
+
+        # Adaptive zero-velocity detection
+
+        # Results
+        return

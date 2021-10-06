@@ -5,20 +5,17 @@ usable dictionaries and finally visible graphs
 
 import matplotlib
 from matplotlib.pyplot import figure
-matplotlib.use("Qt5Agg")
+matplotlib.use("TKAgg")
 import numpy as np
 import os
 import glob
 from data_read import DataRead
 from data_plot import DataPlot
 from data_process import DataProcess
+from settings import Settings as s
 import time as t
 
 start_time = t.time()
-
-# A few settings
-experiment = 3
-padding = 5             # Determines how much space automatic scaling plots have
 
 """
 ------------------------------LOADING DATA ------------------------------
@@ -46,8 +43,9 @@ combAcc = processed_data.combineAccelerations()
 simple_kalAcc = processed_data.simpleKalmanFilter()
 kalData = processed_data.complexKalmanFilter()
 
-emwaData = processed_data.emwaFilter(combAcc[experiment],0.85) #Choose data you want to apply EMWA filter on, and choose alpha value
+emwaData = processed_data.emwaFilter(combAcc[s.experiment],0.85) #Choose data you want to apply EMWA filter on, and choose alpha value
 
+processed_data.stepRegistration(combAcc[s.experiment])
 
 """
 ------------------------------PLOTTING DATA ------------------------------
@@ -55,18 +53,18 @@ emwaData = processed_data.emwaFilter(combAcc[experiment],0.85) #Choose data you 
 
 # Plot combAcc data and raw accx data in 1 plot
 data_plot = DataPlot()
-accPlot = data_plot.plot1by1(all_csv_data[experiment]['time_a'], combAcc[experiment], lab='combined acceleration')
-accPlot = data_plot.plot1by1(all_csv_data[experiment]['time_a'], all_csv_data[experiment]['accX'], lab='raw x acceleration', figure=accPlot, linenumber=6)
+accPlot = data_plot.plot1by1(all_csv_data[s.experiment]['time_a'], combAcc[s.experiment], lab='combined acceleration')
+accPlot = data_plot.plot1by1(all_csv_data[s.experiment]['time_a'], all_csv_data[s.experiment]['accX'], lab='raw x acceleration', figure=accPlot, linenumber=6)
 # Finish the automatic scaling --> automatic determination of ranges in plot1by1 function, also for multiple lines. 
-data_plot.show_plot(accPlot, [0,all_csv_data[experiment]['time_a'][-1]], [ (combAcc[experiment].min() - padding),(combAcc[experiment].max() + padding)],
+data_plot.show_plot(accPlot, [0,all_csv_data[s.experiment]['time_a'][-1]], [ (combAcc[s.experiment].min() - s.padding),(combAcc[s.experiment].max() + s.padding)],
                      'magnitude', 'timestamp', title='Combined acceleration and raw x acceleration', legend=True)
 
 # Plot combAcc data and raw acc data in subplots
-accSubPlot = data_plot.plot2by1(all_csv_data[experiment]['time_a'], combAcc[experiment], 
-                                all_csv_data[experiment]['time_a'], all_csv_data[experiment]['accX'],
+accSubPlot = data_plot.plot2by1(all_csv_data[s.experiment]['time_a'], combAcc[s.experiment], 
+                                all_csv_data[s.experiment]['time_a'], all_csv_data[s.experiment]['accX'],
                                 lab1 = 'combAcc', lab2= 'accX')
-accSubPlot = data_plot.plot2by1(all_csv_data[experiment]['time_a'], all_csv_data[experiment]['accY'],
-                                all_csv_data[experiment]['time_a'], all_csv_data[experiment]['accZ'],
+accSubPlot = data_plot.plot2by1(all_csv_data[s.experiment]['time_a'], all_csv_data[s.experiment]['accY'],
+                                all_csv_data[s.experiment]['time_a'], all_csv_data[s.experiment]['accZ'],
                                 lab1= 'accY', lab2='accZ', figure= accSubPlot, subplotnumber=1,
                                 linenumber1 = 1, linenumber2 = 4)
 # Add automatic scaling
@@ -74,32 +72,32 @@ data_plot.show_plot(accSubPlot, [0,20000], [-10, 30],
                     'magnitude', 'timestamp', title='Combined acceleration and raw accelerations', legend=True)
 
 # Plot all accelerations in seperate subplots
-accSubSubPlot = data_plot.plot2by2( all_csv_data[experiment]['time_a'], combAcc[experiment], 
-                                    all_csv_data[experiment]['time_a'], all_csv_data[experiment]['accX'],
-                                    all_csv_data[experiment]['time_a'], all_csv_data[experiment]['accY'],
-                                    all_csv_data[experiment]['time_a'], all_csv_data[experiment]['accZ'],
+accSubSubPlot = data_plot.plot2by2( all_csv_data[s.experiment]['time_a'], combAcc[s.experiment], 
+                                    all_csv_data[s.experiment]['time_a'], all_csv_data[s.experiment]['accX'],
+                                    all_csv_data[s.experiment]['time_a'], all_csv_data[s.experiment]['accY'],
+                                    all_csv_data[s.experiment]['time_a'], all_csv_data[s.experiment]['accZ'],
                                     lab1= 'combAcc', lab2= 'accX', lab3='accY', lab4='accZ')
 data_plot.show_plot(accSubSubPlot, [0,20000], [-10, 30],
                     'magnitude', 'timestamp', title='Combined acceleration and raw accelerations', legend=True)
 
 # Plot kalman filter
-KalvsCom = data_plot.plot2by1( all_csv_data[experiment]['time_a'], combAcc[experiment], 
-                    all_csv_data[experiment]['time_a'], simple_kalAcc[experiment],
+KalvsCom = data_plot.plot2by1( all_csv_data[s.experiment]['time_a'], combAcc[s.experiment], 
+                    all_csv_data[s.experiment]['time_a'], simple_kalAcc[s.experiment],
                     lab1 = 'combAcc', lab2= 'kalman filtered combAcc')
 data_plot.show_plot(KalvsCom, [0,20000], [-10, 30],
                     'magnitude', 'timestamp', title='Combined acceleration and raw accelerations', legend=True)
 
 # Plot complex kalman filter
-KalComplex = data_plot.plot3by1(    all_csv_data[experiment]['time_a'], kalData[experiment][0], 
-                                    all_csv_data[experiment]['time_a'], kalData[experiment][1],
-                                    all_csv_data[experiment]['time_a'], kalData[experiment][2],
+KalComplex = data_plot.plot3by1(    all_csv_data[s.experiment]['time_a'], kalData[s.experiment][0], 
+                                    all_csv_data[s.experiment]['time_a'], kalData[s.experiment][1],
+                                    all_csv_data[s.experiment]['time_a'], kalData[s.experiment][2],
                                     lab1= 'position', lab2 ='speed', lab3='acceleration')
 data_plot.show_plot(KalComplex, [0,20000], [-10, 30],
                     'magnitude', 'time', title='Complex Kalman Filter results', legend=True)
 
 # Plot EMWA filter
-emwaPlot = data_plot.plot1by1(all_csv_data[experiment]['time_a'], emwaData, lab='EMWA filtered combined acceleration')
-emwaPlot = data_plot.plot1by1(all_csv_data[experiment]['time_a'], combAcc[experiment], lab='combined acceleration', figure=emwaPlot, linenumber=6)
+emwaPlot = data_plot.plot1by1(all_csv_data[s.experiment]['time_a'], emwaData, lab='EMWA filtered combined acceleration')
+emwaPlot = data_plot.plot1by1(all_csv_data[s.experiment]['time_a'], combAcc[s.experiment], lab='combined acceleration', figure=emwaPlot, linenumber=6)
 data_plot.show_plot(emwaPlot, [0,20000], [-10, 30],
                     'magnitude', 'time', title='EMWA filter', legend=True)
 """
