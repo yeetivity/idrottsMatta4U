@@ -45,7 +45,7 @@ kalData = processed_data.complexKalmanFilter()
 
 emwaData = processed_data.emwaFilter(combAcc[s.experiment],0.85) #Choose data you want to apply EMWA filter on, and choose alpha value
 
-peaks = processed_data.stepRegistration(combAcc[s.experiment])
+peaks, valleys = processed_data.stepRegistration(combAcc[s.experiment])
 
 """
 ------------------------------PLOTTING DATA ------------------------------
@@ -55,6 +55,7 @@ peaks = processed_data.stepRegistration(combAcc[s.experiment])
 data_plot = DataPlot()
 accPlot = data_plot.plot1by1(all_csv_data[s.experiment]['time_a'], combAcc[s.experiment], lab='combined acceleration')
 accPlot = data_plot.plot1by1(peaks[1], peaks[0], lab='peaks', figure=accPlot, points=True)
+accPlot = data_plot.plot1by1(valleys[1], valleys[0], lab='valleys', figure=accPlot, points=True, colornumber=2)
 #accPlot = data_plot.plot1by1(all_csv_data[s.experiment]['time_a'], all_csv_data[s.experiment]['accX'], lab='raw x acceleration', figure=accPlot, linenumber=6)
 # Finish the automatic scaling --> automatic determination of ranges in plot1by1 function, also for multiple lines. 
 data_plot.show_plot(accPlot, [0,all_csv_data[s.experiment]['time_a'][-1]], [ (combAcc[s.experiment].min() - s.padding),(combAcc[s.experiment].max() + s.padding)],
@@ -98,7 +99,7 @@ data_plot.show_plot(KalComplex, [0,20000], [-10, 30],
 
 # Plot EMWA filter
 emwaPlot = data_plot.plot1by1(all_csv_data[s.experiment]['time_a'], emwaData, lab='EMWA filtered combined acceleration')
-emwaPlot = data_plot.plot1by1(all_csv_data[s.experiment]['time_a'], combAcc[s.experiment], lab='combined acceleration', figure=emwaPlot, linenumber=6)
+emwaPlot = data_plot.plot1by1(all_csv_data[s.experiment]['time_a'], combAcc[s.experiment], lab='combined acceleration', figure=emwaPlot, colornumber=6)
 data_plot.show_plot(emwaPlot, [0,20000], [-10, 30],
                     'magnitude', 'time', title='EMWA filter', legend=True)
 """
