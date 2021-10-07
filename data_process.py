@@ -130,8 +130,8 @@ class DataProcess(object):
     def stepRegistration(self, combAcc):
         """
         """
-
-        K0 = 130        # Initial time interval threshold of Ki
+        #* INITIALIZATION
+        K0 = 350        # Initial time interval threshold of Ki
         Ki = K0
         alpha = 0.7     # Scale factor used to determine the time interval threshold
         W2 = 5          # Number of consecutive valleys
@@ -141,14 +141,31 @@ class DataProcess(object):
         
         TH = 6          # Statistical value that used to distinguish the state of motion is intense or gentle  
         W1 = 3          # The window size of the acceleration-magnitude detector
-        TH_vy = 20      # Valley detection threshold that utilized to detect the valleys 
+        TH_vy = 1.9     # Valley detection threshold that utilized to detect the valleys 
 
-        maxima = [[],[]]     # Array with maxima
-        clean_maxima = [[],[]]     
-        N_pk = 0        # Number of peaks
-        # Valid valley detection
+        maxima = [[],[]]        # Array with maxima
+        minima = [[],[]]        # Array with minima
 
-        # Valid peak detection
+
+        #* Valid valley detection
+        # 1. Minima detection
+        for i in range(1,len(combAcc)-1):
+            if ((combAcc[i] < combAcc[i+1]) and (combAcc[i] < combAcc[i-1]) and (combAcc[i] < TH_vy)):
+                minima[0].append(combAcc[i])
+                minima[1].append(self.time[i])
+        
+        # 2. Single peak detection with temporal threshold constraint
+        j = 1
+        while j < len(minima[0]):
+            if ((minima[1][j]-minima[1][j-1]) < Ki):
+                index = minima[0].index(max([minima[0][j],minima[0][j-1]]))     # Determine the index of the smallest peak
+                minima[0].pop(index)                                            # Delete smallest peak
+                minima[1].pop(index)
+                j = j
+            else:
+                j+= 1
+
+        #* Valid peak detection
         # 1. Maxima Detection
         for i in range(1,len(combAcc)-1):
             if ((combAcc[i] > combAcc[i+1]) and (combAcc[i] > combAcc[i-1]) and (combAcc[i] > TH_pk)):
@@ -156,16 +173,21 @@ class DataProcess(object):
                 maxima[1].append(self.time[i])
 
         # 2. Single Peak Detection with temporal threshold constraint
-        for j in range(0,len(maxima[0])-1):
-            if ((maxima[1][j+1]-maxima[1][j]) > Ki):    #Todo this part is not behaving correctly yet
-                clean_maxima[0].append(max(maxima[0][j], maxima[0][j+1]))
-                clean_maxima[1].append(maxima[1][j])    #Todo find a way to give the correct time
-                N_pk += 1
+        j = 1
+        while j < len(maxima[0]):
+            if ((maxima[1][j]-maxima[1][j-1]) < Ki):
+                index = maxima[0].index(min([maxima[0][j],maxima[0][j-1]]))     # Determine the index of the smallest peak
+                maxima[0].pop(index)                                            # Delete smallest peak
+                maxima[1].pop(index)
+                j = j
+            else:
+                j+= 1
 
         # Adaptive thresholds determination
 
         # Adaptive zero-velocity detection
 
         # Results
-        print('Amount of steps:', N_pk)
-        return clean_maxima
+        print('Amount of peaks:', len(maxima[0]))
+        print('Amount of valleys:', len(minima[0]))
+        return maxima, minima
