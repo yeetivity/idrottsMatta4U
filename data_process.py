@@ -154,7 +154,7 @@ class DataProcess(object):
                 minima[0].append(combAcc[i])
                 minima[1].append(self.time[i])
         
-        # 2. Single peak detection with temporal threshold constraint
+        # 2. Single valley detection with temporal threshold constraint
         j = 1
         while j < len(minima[0]):
             if ((minima[1][j]-minima[1][j-1]) < Ki):

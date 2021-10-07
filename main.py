@@ -4,8 +4,8 @@ usable dictionaries and finally visible graphs
 """
 
 import matplotlib
-from matplotlib.pyplot import figure
-matplotlib.use("TKAgg")
+import matplotlib.pyplot as plt
+matplotlib.use("Qt5Agg")
 import numpy as np
 import os
 import glob
