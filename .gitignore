@@ -1,3 +1,4 @@
 JSON_DATA/
 figures/
 plotting.ipynb
+__pycache__/

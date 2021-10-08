@@ -1,6 +1,10 @@
 import numpy as np
 from settings import Settings as s
 
+def find_nearest(array,value):
+    idx = (np.abs(array - value)).argmin()
+    return idx
+
 class DataProcess(object):
     """
     
@@ -131,11 +135,10 @@ class DataProcess(object):
         """
         """
         #* INITIALIZATION
-        K0 = 350        # Initial time interval threshold of Ki
-        Ki = K0
+        K0 = 200       # Initial time interval threshold of Ki
         alpha = 0.7     # Scale factor used to determine the time interval threshold
         W2 = 5          # Number of consecutive valleys
-        TH_pk = 40      # Peak detection threshold to exclude false detection
+        TH_pk = 5      # Peak detection threshold to exclude false detection
         TH_s = 190      # Fixed value to detect static states and determine whether to stop the update of K_i
         
         
@@ -146,42 +149,55 @@ class DataProcess(object):
         maxima = [[],[]]        # Array with maxima
         minima = [[],[]]        # Array with minima
 
+        T=[]
 
+        for i in range(len(combAcc)-W1-1):
+            T.append(0)
+            variance = np.var(combAcc[i+1:i+1+W1])
+            for k in range(i+1,i+1+W1):
+                T[i]=T[i]+np.square(combAcc[k]-s.gravity)*(1/(np.square(variance)*W1))
+        
         #* Valid valley detection
         # 1. Minima detection
-        for i in range(1,len(combAcc)-1):
-            if ((combAcc[i] < combAcc[i+1]) and (combAcc[i] < combAcc[i-1]) and (combAcc[i] < TH_vy)):
+        for i in range(1,len(combAcc)-1-W1):
+            if ((combAcc[i] < combAcc[i+1]) and (combAcc[i] < combAcc[i-1]) and (T[i] < TH_vy)):
                 minima[0].append(combAcc[i])
                 minima[1].append(self.time[i])
-        
-        # 2. Single valley detection with temporal threshold constraint
-        j = 1
-        while j < len(minima[0]):
-            if ((minima[1][j]-minima[1][j-1]) < Ki):
-                index = minima[0].index(max([minima[0][j],minima[0][j-1]]))     # Determine the index of the smallest peak
-                minima[0].pop(index)                                            # Delete smallest peak
-                minima[1].pop(index)
-                j = j
-            else:
-                j+= 1
 
-        #* Valid peak detection
-        # 1. Maxima Detection
-        for i in range(1,len(combAcc)-1):
+            # 1. Maxima Detection
             if ((combAcc[i] > combAcc[i+1]) and (combAcc[i] > combAcc[i-1]) and (combAcc[i] > TH_pk)):
                 maxima[0].append(combAcc[i])
                 maxima[1].append(self.time[i])
+        
+        
+        # 2. Single valley detection with temporal threshold constraint
+        for i in range(1,len(combAcc)-1):
 
-        # 2. Single Peak Detection with temporal threshold constraint
-        j = 1
-        while j < len(maxima[0]):
-            if ((maxima[1][j]-maxima[1][j-1]) < Ki):
-                index = maxima[0].index(min([maxima[0][j],maxima[0][j-1]]))     # Determine the index of the smallest peak
+            t_i = self.time[i]
+            n = find_nearest(np.asarray(minima[1]),t_i)
+            t_n = minima[1][n]
+
+            if ((np.abs(t_i-t_n)) < TH_s):
+                if (minima[1][n]-minima[1][max(0,n-W2)])==0:
+                    Ki = K0
+                else :
+                    Ki = alpha*(minima[1][n]-minima[1][max(0,n-W2)])/W2
+            elif (np.abs(t_i - t_n) >= TH_s):
+                Ki = K0 
+
+            if ((minima[1][max(n,1)]-minima[1][max(n-1,0)]) < Ki):
+                index = minima[0].index(max([minima[0][max(n,1)],minima[0][max(n-1,0)]]))     # Determine the index of the smallest peak
+                minima[0].pop(index)                                         # Delete smallest peak
+                minima[1].pop(index)   
+
+            #* Valid peak detection
+
+            n_max = find_nearest(np.asarray(maxima[1]),t_i)
+            # 2. Single Peak Detection with temporal threshold constraint
+            if ((maxima[1][max(n_max,1)]-maxima[1][max(n_max-1,0)]) < Ki):
+                index = maxima[0].index(min([maxima[0][max(n_max,1)],maxima[0][max(n_max-1,0)]]))     # Determine the index of the smallest peak
                 maxima[0].pop(index)                                            # Delete smallest peak
-                maxima[1].pop(index)
-                j = j
-            else:
-                j+= 1
+                maxima[1].pop(index)   
 
         # Adaptive thresholds determination
 

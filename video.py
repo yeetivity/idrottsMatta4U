@@ -86,3 +86,6 @@ for i in range(1,len(timestamps)):
     plt.legend()
     plt.savefig('Plt_img/img_'+str(i)+'.png')
     plt.close()
+
+## ffmpeg -r 30 -f image2 -i img_%d.png -vcodec libx264 -crf 30 -pix_fmt yuv420p Rendu.mp4 #Create video with png files --> TODO create with 1080p
+## ffmpeg -i video_10_foot.mp4 -i Rendu.mp4 -crf 30 -filter_complex hstack output.mp4 #Concatenate the two videos
