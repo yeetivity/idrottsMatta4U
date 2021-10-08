@@ -171,7 +171,7 @@ class DataProcess(object):
         return self.kalData
 
 
-    def complexKalmanFilterGyro(self, gyro_data, filtered_gyro, B=None, u=None):      #! ADD CORRECTION W ACC
+    def complexKalmanFilterGyro(self, gyro_data, filtered_gyro, control_data, B=None, u=None):      #! ADD CORRECTION W ACC
         """
         Kalman with multiple dimensions, for gyro
 
@@ -185,8 +185,7 @@ class DataProcess(object):
         """
         filtered_gyro = []
         if (B is None) and (u is None):
-            B = np.zeros((3,3))
-            u = np.zeros((3,1))
+            u = np.zeros((2,1))
         else:
             pass
 
@@ -201,15 +200,16 @@ class DataProcess(object):
                             [0, 0.5]])               # Process noise covariance matrix
             H = np.array([0, 1])                     # Measurement matrix
 
-            #B = np.array([ [0, 1],
-            #               [0, 0]]) #! not done yet
+            B = np.array([ [0, 0],
+                           [0, 1]]) #! not done yet
 
             #u = np.array([[0],
-                        #[self.pitch[i]]])
+                        #[self.pitch[0][0]]])
 
             # Initiliaze some filter values
             R = 10                                      # Some scalar
             z = gyro_data[i]
+            control = control_data[i]
             x = np.array([  [0],
                             [0]])                       # angle, angular v
             y = np.subtract( z[0], np.dot(H,x))         # Comparing predicted value with measurement
@@ -220,7 +220,13 @@ class DataProcess(object):
                 
                 # PREDICTION VALUES
                     # x = Ax + Bu
-                x = np.dot(A,x) #+ np.dot(B, u)
+                u = np.array(   [[0],
+                                [control[j]]])
+                Bu = np.dot(B, u)
+                Ax = np.dot(A,x)
+                #x = np.dot(A,x) #+ np.dot(B, u)
+                for ii in range(1):
+                    x[ii] = Ax[ii] + Bu[ii]
                     # P = A P A^T + Q
                 P = np.add( (np.dot(np.dot(A,P), A.transpose())), Q)
                 

@@ -49,9 +49,9 @@ simple_kalAcc = processed_data.simpleKalmanFilter()
 accKalData = processed_data.complexKalmanFilter(combAcc)
 
 # gyro Kalman    
-gyroKalDataX = processed_data.complexKalmanFilterGyro(processed_data.gyroX, processed_data.kalGyroX)
-gyroKalDataY = processed_data.complexKalmanFilterGyro(processed_data.gyroY, processed_data.kalGyroY)
-gyroKalDataZ = processed_data.complexKalmanFilterGyro(processed_data.gyroZ, processed_data.kalGyroZ)
+gyroKalDataX = processed_data.complexKalmanFilterGyro(processed_data.gyroX, processed_data.kalGyroX, processed_data.pitch)
+gyroKalDataY = processed_data.complexKalmanFilterGyro(processed_data.gyroY, processed_data.kalGyroY, processed_data.roll)
+gyroKalDataZ = processed_data.complexKalmanFilterGyro(processed_data.gyroZ, processed_data.kalGyroZ, processed_data.yaw)
 
 #horizontal component of acceleration
 horCompo = processed_data.horizontalComponent(gyroKalDataX)
