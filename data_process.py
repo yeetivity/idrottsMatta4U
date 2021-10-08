@@ -7,19 +7,29 @@ class DataProcess(object):
     def __init__(self, storeddata):
         self.storeddata = storeddata
 
-        self.gravity = 9.81
-        self.dT = 1/52
-        self.combAcc = []
-        self.simple_kalAcc = []
-        self.kalAcc = []
-        self.kalVel = []
-        self.kalPos = []
-        self.kalData = []
-        self.kalGyro = []
-        self.gyroX = []         
+        self.gyroX = [] 
+        self.gyroY = []
+        self.gyroZ = []
+
         self.accX = []
         self.accY = []
         self.accZ = []
+        self.combAcc = []
+
+        self.gravity = 9.81
+        self.dT = 1/52
+
+        self.simple_kalAcc = [] 
+        self.kalData = []
+
+        self.kalAcc = []
+        self.kalVel = []
+        self.kalPos = []
+       
+        self.kalGyroX = []
+        self.kalGyroY = []
+        self.kalGyroZ = []
+
         self.horCompo = []
 
         for i in range(len(self.storeddata)):
@@ -27,6 +37,27 @@ class DataProcess(object):
             self.accY.append(self.storeddata[i]['accY'])
             self.accZ.append(self.storeddata[i]['accZ'])
             self.gyroX.append(self.storeddata[i]['gyrX'])
+            self.gyroY.append(self.storeddata[i]['gyrY'])
+            self.gyroZ.append(self.storeddata[i]['gyrZ'])
+            #ptch = np.tan(self.storeddata[i]['accX']/(np.sqrt(self.storeddata[i]['accY']**2 + self.storeddata[i]['accZ']**2)))
+            #self.pitch.append(ptch)
+        
+        #pitch (around x axis), roll (around y axis) & yaw (around z axis)
+        self.pitch = np.zeros((len(self.storeddata), 1035))
+        self.roll = np.zeros((len(self.storeddata), 1035))
+        self.yaw = np.zeros((len(self.storeddata), 1035))
+        self.accX_arr = np.zeros((len(self.storeddata), 1035))
+        self.accY_arr = np.zeros((len(self.storeddata), 1035))
+        self.accZ_arr = np.zeros((len(self.storeddata), 1035))
+
+        for i in range(len(self.storeddata)):
+            for j in range(len(self.accX[i])):
+                self.accX_arr[i][j] = self.accX[i][j]
+                self.accY_arr[i][j] = self.accY[i][j]
+                self.accZ_arr[i][j] = self.accZ[i][j]
+                self.pitch[i][j] = np.tan(self.accX_arr[i][j]/ (np.sqrt(self.accY_arr[i][j]**2 + self.accZ_arr[i][j]**2)))
+                self.roll[i][j] = np.tan(self.accY_arr[i][j]/ (np.sqrt(self.accX_arr[i][j]**2 + self.accZ_arr[i][j]**2)))
+                self.yaw[i][j] = np.tan((np.sqrt(self.accX_arr[i][j]**2 + self.accY_arr[i][j]**2))/self.accZ_arr[i][j])
 
         return
 
@@ -140,7 +171,7 @@ class DataProcess(object):
         return self.kalData
 
 
-    def complexKalmanFilterGyro(self, B=None, u=None):      #! ADD CORRECTION W ACC
+    def complexKalmanFilterGyro(self, gyro_data, filtered_gyro, B=None, u=None):      #! ADD CORRECTION W ACC
         """
         Kalman with multiple dimensions, for gyro
 
@@ -152,6 +183,7 @@ class DataProcess(object):
             self.kalGyro    6x2x1 array with:
                             [experiment][angle=0 (degrees), angular velocity = 1][timestamp]
         """
+        filtered_gyro = []
         if (B is None) and (u is None):
             B = np.zeros((3,3))
             u = np.zeros((3,1))
@@ -159,7 +191,7 @@ class DataProcess(object):
             pass
 
 
-        for i in range(len(self.gyroX)):
+        for i in range(len(gyro_data)):
             # setting for gyro Kalman
             A = np.array([  [1, self.dT],     # angle
                             [0, 1]])    # angular v     # State transition matrix
@@ -169,14 +201,15 @@ class DataProcess(object):
                             [0, 0.5]])               # Process noise covariance matrix
             H = np.array([0, 1])                     # Measurement matrix
 
-            #B = np.array([[]]) #! not done yet
-            u = np.array([[self.accX[i]],
-                        [self.accY[i]],
-                        [self.accZ[i]]])
+            #B = np.array([ [0, 1],
+            #               [0, 0]]) #! not done yet
+
+            #u = np.array([[0],
+                        #[self.pitch[i]]])
 
             # Initiliaze some filter values
             R = 10                                      # Some scalar
-            z = self.gyroX[i]
+            z = gyro_data[i]
             x = np.array([  [0],
                             [0]])                       # angle, angular v
             y = np.subtract( z[0], np.dot(H,x))         # Comparing predicted value with measurement
@@ -206,10 +239,10 @@ class DataProcess(object):
                 
                 X = np.hstack((X, x))
             X = X[:,1:]
-            self.kalGyro.append(X)
+            filtered_gyro.append(X)
 
 
-        return self.kalGyro
+        return filtered_gyro
 
     # function to get the horizontal component #! NEEDS TO BE CHECKED IF RIGHT AXES USED
     def horizontalComponent(self, angle):
@@ -231,7 +264,7 @@ class DataProcess(object):
         for i in range(len(angle)):
 
             #takes one row of self.accZ (one experiment)
-            Z = self.accZ[i]
+            Z = self.combAcc[i]
             self.horCompoNew = []
 
             # all the values in one experiment
