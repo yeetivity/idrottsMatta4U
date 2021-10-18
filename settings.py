@@ -12,4 +12,6 @@ class Settings(object):
     #Physical settings
     gravity = 9.81
 
+    #IMU settings
+    samplingfreq = 1/52
     
