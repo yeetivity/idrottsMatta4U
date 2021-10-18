@@ -1,10 +1,11 @@
 import numpy as np
+from settings import Settings as s
 
 class DataProcess(object):
     """
     
     """
-    def __init__(self, storeddata):
+    def __init__(self, storeddata): #TODO clean up the init
         self.storeddata = storeddata
 
         self.gyroX = [] 
@@ -16,8 +17,8 @@ class DataProcess(object):
         self.accZ = []
         self.combAcc = []
 
-        self.gravity = 9.81
-        self.dT = 1/52
+        self.gravity = s.gravity
+        self.dT = s.samplingfreq
 
         self.simple_kalAcc = [] 
         self.kalData = []
@@ -25,11 +26,12 @@ class DataProcess(object):
         self.kalAcc = []
         self.kalVel = []
         self.kalPos = []
-       
         self.kalGyroX = []
         self.kalGyroY = []
         self.kalGyroZ = []
 
+        self.time = storeddata[s.experiment]['time_a']
+        self.emwaData = []    
         self.horCompo = []
 
         for i in range(len(self.storeddata)):
@@ -70,7 +72,7 @@ class DataProcess(object):
             self.combAcc.append(np.sqrt(np.square(self.storeddata[i]['accX']) + 
                                         np.square(self.storeddata[i]['accY']) +
                                         np.square(self.storeddata[i]['accZ']))
-                                        - self.gravity )
+                                        - s.gravity )
 
         return self.combAcc
 
@@ -171,7 +173,7 @@ class DataProcess(object):
         return self.kalData
 
 
-    def complexKalmanFilterGyro(self, gyro_data, filtered_gyro, control_data, B=None, u=None):      #! ADD CORRECTION W ACC
+    def complexKalmanFilterGyro(self, gyro_data, filtered_gyro, control_data, B=None, u=None):      #Todo: Add correction for w acc
         """
         Kalman with multiple dimensions, for gyro
 
@@ -201,7 +203,7 @@ class DataProcess(object):
             H = np.array([0, 1])                     # Measurement matrix
 
             B = np.array([ [0, 0],
-                           [0, 1]]) #! not done yet
+                           [0, 1]]) #Todo: something needs to be added here according to Elisa
 
             #u = np.array([[0],
                         #[self.pitch[0][0]]])
@@ -250,7 +252,7 @@ class DataProcess(object):
 
         return filtered_gyro
 
-    # function to get the horizontal component #! NEEDS TO BE CHECKED IF RIGHT AXES USED
+    # function to get the horizontal component #Todo: check if right axes are used. 
     def horizontalComponent(self, angle):
         """
         Horizontal component of acc (or vel)
@@ -275,17 +277,90 @@ class DataProcess(object):
 
             # all the values in one experiment
             for j in range(len(Z)):
-                #! np.cos takes radians, check if kalmangyro gives out radians
-                self.horCompoNew.append(Z[j] * np.cos(angle[i][0][j])) #angle[i][0] are angle values, angle[i][1] angular velocities
+                #! np.cos takes radians 
+                # Todo: check if kalmangyro outputs radians
+                self.horCompoNew.append(Z[j] * np.cos(angle[i][0][j])) #[0]=angle, [1]=angular velocity
             
             self.horCompo.append(self.horCompoNew)
             
         return self.horCompo
     
     
-    def filter():
+    def emwaFilter(self,data,alpha):
         """
-        If you don't want to sleep, make EMWA filter
+        EMWA filter
         """
+        #Initialization
+        self.emwaData.append(data[0])
 
-        return
+        #Filtering
+        for k in range(1, len(data)):
+            self.emwaData.append(alpha*self.emwaData[k-1]+(1-alpha)*data[k])
+            
+        return self.emwaData
+
+    def stepRegistration(self, combAcc):
+        """
+        """
+        #* INITIALIZATION
+        K0 = 350        # Initial time interval threshold of Ki
+        Ki = K0
+        alpha = 0.7     # Scale factor used to determine the time interval threshold
+        W2 = 5          # Number of consecutive valleys
+        TH_pk = 40      # Peak detection threshold to exclude false detection
+        TH_s = 190      # Fixed value to detect static states and determine whether to stop the update of K_i
+        
+        
+        TH = 6          # Statistical value that used to distinguish the state of motion is intense or gentle  
+        W1 = 3          # The window size of the acceleration-magnitude detector
+        TH_vy = 1.9     # Valley detection threshold that utilized to detect the valleys 
+
+        maxima = [[],[]]        # Array with maxima
+        minima = [[],[]]        # Array with minima
+
+
+        #* Valid valley detection
+        # 1. Minima detection
+        for i in range(1,len(combAcc)-1):
+            if ((combAcc[i] < combAcc[i+1]) and (combAcc[i] < combAcc[i-1]) and (combAcc[i] < TH_vy)):
+                minima[0].append(combAcc[i])
+                minima[1].append(self.time[i])
+        
+        # 2. Single valley detection with temporal threshold constraint
+        j = 1
+        while j < len(minima[0]):
+            if ((minima[1][j]-minima[1][j-1]) < Ki):
+                index = minima[0].index(max([minima[0][j],minima[0][j-1]]))     # Determine the index of the smallest peak
+                minima[0].pop(index)                                            # Delete smallest peak
+                minima[1].pop(index)
+                j = j
+            else:
+                j+= 1
+
+        #* Valid peak detection
+        # 1. Maxima Detection
+        for i in range(1,len(combAcc)-1):
+            if ((combAcc[i] > combAcc[i+1]) and (combAcc[i] > combAcc[i-1]) and (combAcc[i] > TH_pk)):
+                maxima[0].append(combAcc[i])
+                maxima[1].append(self.time[i])
+
+        # 2. Single Peak Detection with temporal threshold constraint
+        j = 1
+        while j < len(maxima[0]):
+            if ((maxima[1][j]-maxima[1][j-1]) < Ki):
+                index = maxima[0].index(min([maxima[0][j],maxima[0][j-1]]))     # Determine the index of the smallest peak
+                maxima[0].pop(index)                                            # Delete smallest peak
+                maxima[1].pop(index)
+                j = j
+            else:
+                j+= 1
+
+        # Adaptive thresholds determination
+
+        # Adaptive zero-velocity detection
+
+        # Results
+        print('Amount of peaks:', len(maxima[0]))
+        print('Amount of valleys:', len(minima[0]))
+        return maxima, minima
+
