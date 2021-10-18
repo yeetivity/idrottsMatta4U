@@ -24,7 +24,7 @@ padding = 5             # Determines how much space automatic scaling plots have
 ------------------------------LOADING DATA ------------------------------
 """
 # Load all the JSON files - Automatic reading from a folder
-data = DataRead()                                                     # Initialise the datareading class                                                              # Define path to the folder
+data = DataRead()                                                     # Initialise the datareading class
 paths = sorted(glob.glob('JSON_DATA/Experiment1/'+ "/*.json"))        # Read all the seperate paths for every .json file
 all_json_data = data.load_jsons(paths)                                # Use load_all function to create an array with all data
 
@@ -42,47 +42,29 @@ all_csv_data = data.transform_csvformat(all_csv_gyrdata, acc=False)
 ------------------------------PROCESSING DATA ------------------------------
 """
 processed_data = DataProcess(all_csv_data)
-combAcc = processed_data.combineAccelerations()
-simple_kalAcc = processed_data.simpleKalmanFilter()
+combAcc = processed_data.combineAccelerations()             # Combine accelerations
+accKalData = processed_data.complexKalmanFilter(combAcc)    # Kalman filter combined acceleration
 
-# combined acceleration Kalman
-accKalData = processed_data.complexKalmanFilter(combAcc)
-
-# gyro Kalman    
+# Kalman filtered gyro data    
 gyroKalDataX = processed_data.complexKalmanFilterGyro(processed_data.gyroX, processed_data.kalGyroX, processed_data.pitch)
 gyroKalDataY = processed_data.complexKalmanFilterGyro(processed_data.gyroY, processed_data.kalGyroY, processed_data.roll)
 gyroKalDataZ = processed_data.complexKalmanFilterGyro(processed_data.gyroZ, processed_data.kalGyroZ, processed_data.yaw)
 
-#horizontal component of acceleration
-horCompo = processed_data.horizontalComponent(gyroKalDataX)
-
-
+horCompo = processed_data.horizontalComponent(gyroKalDataX) # Horizontal component of acceleration
 
 """
 ------------------------------PLOTTING DATA ------------------------------
 """
 
-# Plot combAcc data and raw accx data in 1 plot
+# Plot combined acceleration and raw x acceleration #Todo finish automatic scaling
 data_plot = DataPlot()
 accPlot = data_plot.plot1by1(all_csv_data[experiment]['time_a'], combAcc[experiment], lab='combined acceleration')
 accPlot = data_plot.plot1by1(all_csv_data[experiment]['time_a'], all_csv_data[experiment]['accX'], lab='raw x acceleration', figure=accPlot, linenumber=6)
-# Finish the automatic scaling --> automatic determination of ranges in plot1by1 function, also for multiple lines. 
 data_plot.show_plot(accPlot, [0,all_csv_data[experiment]['time_a'][-1]], [ (combAcc[experiment].min() - padding),(combAcc[experiment].max() + padding)],
                      'magnitude', 'timestamp', title='Combined acceleration and raw x acceleration', legend=True)
 
-# Plot combAcc data and raw acc data in subplots
-accSubPlot = data_plot.plot2by1(all_csv_data[experiment]['time_a'], combAcc[experiment], 
-                                all_csv_data[experiment]['time_a'], all_csv_data[experiment]['accX'],
-                                lab1 = 'combAcc', lab2= 'accX')
-accSubPlot = data_plot.plot2by1(all_csv_data[experiment]['time_a'], all_csv_data[experiment]['accY'],
-                                all_csv_data[experiment]['time_a'], all_csv_data[experiment]['accZ'],
-                                lab1= 'accY', lab2='accZ', figure= accSubPlot, subplotnumber=1,
-                                linenumber1 = 1, linenumber2 = 4)
-# Add automatic scaling
-data_plot.show_plot(accSubPlot, [0,20000], [-10, 30],
-                    'magnitude', 'timestamp', title='Combined acceleration and raw accelerations', legend=True)
 
-# Plot all accelerations in seperate subplots
+# Plot all accelerations and combined acceleration
 accSubSubPlot = data_plot.plot2by2( all_csv_data[experiment]['time_a'], combAcc[experiment], 
                                     all_csv_data[experiment]['time_a'], all_csv_data[experiment]['accX'],
                                     all_csv_data[experiment]['time_a'], all_csv_data[experiment]['accY'],
@@ -91,14 +73,8 @@ accSubSubPlot = data_plot.plot2by2( all_csv_data[experiment]['time_a'], combAcc[
 data_plot.show_plot(accSubSubPlot, [0,20000], [-10, 30],
                     'magnitude', 'timestamp', title='Combined acceleration and raw accelerations', legend=True)
 
-# Plot kalman filter
-KalvsCom = data_plot.plot2by1( all_csv_data[experiment]['time_a'], combAcc[experiment], 
-                    all_csv_data[experiment]['time_a'], simple_kalAcc[experiment],
-                    lab1 = 'combAcc', lab2= 'kalman filtered combAcc')
-data_plot.show_plot(KalvsCom, [0,20000], [-10, 30],
-                    'magnitude', 'timestamp', title='Combined acceleration and raw accelerations', legend=True)
 
-# Plot complex kalman filter
+# Plot complex kalman filtered data
 KalComplex = data_plot.plot3by1(    all_csv_data[experiment]['time_a'], accKalData[experiment][0], 
                                     all_csv_data[experiment]['time_a'], accKalData[experiment][1],
                                     all_csv_data[experiment]['time_a'], accKalData[experiment][2],
@@ -106,27 +82,28 @@ KalComplex = data_plot.plot3by1(    all_csv_data[experiment]['time_a'], accKalDa
 data_plot.show_plot(KalComplex, [0,20000], [-10, 30],
                     'magnitude', 'time', title='Complex Kalman Filter results', legend=True)
 
-# Plot kalman filter for gyro
-#X
+
+# Plot kalman filtered gyro data
 KalGyrX = data_plot.plot2by1(    all_csv_data[experiment]['time_a'], gyroKalDataX[experiment][0], 
                                 all_csv_data[experiment]['time_a'], gyroKalDataX[experiment][1],
                                 lab1 = 'angle', lab2= 'angular speed')
 data_plot.show_plot(KalGyrX, [0,20000], [-40, 70],
                     'magnitude', 'timestamp', title='Kalman filtered angular velocity and position around x axis', legend=True)
-#Y
+
 KalGyrY = data_plot.plot2by1(    all_csv_data[experiment]['time_a'], gyroKalDataY[experiment][0], 
                                 all_csv_data[experiment]['time_a'], gyroKalDataY[experiment][1],
                                 lab1 = 'angle', lab2= 'angular speed')
 data_plot.show_plot(KalGyrY, [0,20000], [-100, 50],
                     'magnitude', 'timestamp', title='Kalman filtered angular velocity and position around y axis', legend=True)
-#Z
+
 KalGyrZ = data_plot.plot2by1(    all_csv_data[experiment]['time_a'], gyroKalDataZ[experiment][0], 
                                 all_csv_data[experiment]['time_a'], gyroKalDataZ[experiment][1],
                                 lab1 = 'angle', lab2= 'angular speed')
 data_plot.show_plot(KalGyrZ, [0,20000], [-50, 50],
                     'magnitude', 'timestamp', title='Kalman filtered angular velocity and position around z axis', legend=True)
 
-# plot horizontal component of acceleration
+
+# Plot horizontal component of acceleration
 HorAcc = data_plot.plot1by1(all_csv_data[experiment]['time_a'], horCompo[experiment], lab='horizontal component of acceleration')
 data_plot.show_plot(HorAcc, [0,20000], [-10, 30],
                     'magnitude', 'timestamp', title='horizontal component of acceleration', legend=True)
