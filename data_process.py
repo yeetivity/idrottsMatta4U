@@ -191,3 +191,5 @@ class DataProcess(object):
         print('Amount of peaks:', len(maxima[0]))
         print('Amount of valleys:', len(minima[0]))
         return maxima, minima
+
+        
