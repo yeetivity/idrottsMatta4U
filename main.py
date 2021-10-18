@@ -44,8 +44,17 @@ all_csv_data = data.transform_csvformat(all_csv_gyrdata, acc=False)
 processed_data = DataProcess(all_csv_data)
 combAcc = processed_data.combineAccelerations()
 simple_kalAcc = processed_data.simpleKalmanFilter()
-kalData = processed_data.complexKalmanFilter()
 
+# combined acceleration Kalman
+accKalData = processed_data.complexKalmanFilter(combAcc)
+
+# gyro Kalman    
+gyroKalDataX = processed_data.complexKalmanFilterGyro(processed_data.gyroX, processed_data.kalGyroX, processed_data.pitch)
+gyroKalDataY = processed_data.complexKalmanFilterGyro(processed_data.gyroY, processed_data.kalGyroY, processed_data.roll)
+gyroKalDataZ = processed_data.complexKalmanFilterGyro(processed_data.gyroZ, processed_data.kalGyroZ, processed_data.yaw)
+
+#horizontal component of acceleration
+horCompo = processed_data.horizontalComponent(gyroKalDataX)
 
 
 
@@ -90,12 +99,38 @@ data_plot.show_plot(KalvsCom, [0,20000], [-10, 30],
                     'magnitude', 'timestamp', title='Combined acceleration and raw accelerations', legend=True)
 
 # Plot complex kalman filter
-KalComplex = data_plot.plot3by1(    all_csv_data[experiment]['time_a'], kalData[experiment][0], 
-                                    all_csv_data[experiment]['time_a'], kalData[experiment][1],
-                                    all_csv_data[experiment]['time_a'], kalData[experiment][2],
+KalComplex = data_plot.plot3by1(    all_csv_data[experiment]['time_a'], accKalData[experiment][0], 
+                                    all_csv_data[experiment]['time_a'], accKalData[experiment][1],
+                                    all_csv_data[experiment]['time_a'], accKalData[experiment][2],
                                     lab1= 'position', lab2 ='speed', lab3='acceleration')
 data_plot.show_plot(KalComplex, [0,20000], [-10, 30],
                     'magnitude', 'time', title='Complex Kalman Filter results', legend=True)
+
+# Plot kalman filter for gyro
+#X
+KalGyrX = data_plot.plot2by1(    all_csv_data[experiment]['time_a'], gyroKalDataX[experiment][0], 
+                                all_csv_data[experiment]['time_a'], gyroKalDataX[experiment][1],
+                                lab1 = 'angle', lab2= 'angular speed')
+data_plot.show_plot(KalGyrX, [0,20000], [-40, 70],
+                    'magnitude', 'timestamp', title='Kalman filtered angular velocity and position around x axis', legend=True)
+#Y
+KalGyrY = data_plot.plot2by1(    all_csv_data[experiment]['time_a'], gyroKalDataY[experiment][0], 
+                                all_csv_data[experiment]['time_a'], gyroKalDataY[experiment][1],
+                                lab1 = 'angle', lab2= 'angular speed')
+data_plot.show_plot(KalGyrY, [0,20000], [-100, 50],
+                    'magnitude', 'timestamp', title='Kalman filtered angular velocity and position around y axis', legend=True)
+#Z
+KalGyrZ = data_plot.plot2by1(    all_csv_data[experiment]['time_a'], gyroKalDataZ[experiment][0], 
+                                all_csv_data[experiment]['time_a'], gyroKalDataZ[experiment][1],
+                                lab1 = 'angle', lab2= 'angular speed')
+data_plot.show_plot(KalGyrZ, [0,20000], [-50, 50],
+                    'magnitude', 'timestamp', title='Kalman filtered angular velocity and position around z axis', legend=True)
+
+# plot horizontal component of acceleration
+HorAcc = data_plot.plot1by1(all_csv_data[experiment]['time_a'], horCompo[experiment], lab='horizontal component of acceleration')
+data_plot.show_plot(HorAcc, [0,20000], [-10, 30],
+                    'magnitude', 'timestamp', title='horizontal component of acceleration', legend=True)
+
 
 """
 ------------------------------CODE ENDING ------------------------------
