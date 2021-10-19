@@ -5,7 +5,7 @@ usable dictionaries and finally visible graphs
 
 import matplotlib
 import matplotlib.pyplot as plt
-matplotlib.use("Qt5Agg")
+matplotlib.use("TkAgg")
 import numpy as np
 import os
 import glob
@@ -27,13 +27,13 @@ data = DataRead() # Initialise the datareading class
 # all_json_data = data.load_jsons(paths)                                # Use load_all function to create an array with all data
 
 # Load all CSV acc files - Automatic reading from a folder
-paths = sorted(glob.glob('CSV_DATA/ACC/'+ "/*.csv"))
-all_csv_accdata = data.load_csvs(paths)
+paths1 = sorted(glob.glob('CSV_DATA2/ACC/'+ "/*.csv"))
+all_csv_accdata = data.load_csvs(paths1)
 data.transform_csvformat(all_csv_accdata, acc=True)
 
 # Load all CSV gyr files - Automatic reading from a folder
-paths = sorted(glob.glob('CSV_DATA/GYRO/'+ "/*.csv"))
-all_csv_gyrdata = data.load_csvs(paths)
+paths2 = sorted(glob.glob('CSV_DATA2/GYRO/'+ "/*.csv"))
+all_csv_gyrdata = data.load_csvs(paths2)
 all_csv_data = data.transform_csvformat(all_csv_gyrdata, acc=False)
 
 """
@@ -62,10 +62,10 @@ horCompo = processed_data.horizontalComponent(gyroKalDataX) # Horizontal compone
 
 # Plot combined acceleration and raw x acceleration #Todo finish automatic scaling
 data_plot = DataPlot()
-accPlot = data_plot.plot1by1(all_csv_data[s.experiment]['time_a'], combAcc[s.experiment], lab='combined acceleration')
-accPlot = data_plot.plot1by1(all_csv_data[s.experiment]['time_a'], all_csv_data[s.experiment]['accX'], lab='raw x acceleration', figure=accPlot, colornumber=6)
-data_plot.show_plot(accPlot, [0,all_csv_data[s.experiment]['time_a'][-1]], [ (combAcc[s.experiment].min() - s.padding),(combAcc[s.experiment].max() + s.padding)],
-                     'magnitude', 'timestamp', title='Combined acceleration and raw x acceleration', legend=True)
+# accPlot = data_plot.plot1by1(all_csv_data[s.experiment]['time_a'], combAcc[s.experiment], lab='combined acceleration')
+# accPlot = data_plot.plot1by1(all_csv_data[s.experiment]['time_a'], all_csv_data[s.experiment]['accX'], lab='raw x acceleration', figure=accPlot, colornumber=6)
+# data_plot.show_plot(accPlot, [0,all_csv_data[s.experiment]['time_a'][-1]], [ (combAcc[s.experiment].min() - s.padding),(combAcc[s.experiment].max() + s.padding)],
+#                      'magnitude', 'timestamp', title='Combined acceleration and raw x acceleration', legend=True)
 
 
 # Plot all accelerations and combined acceleration
@@ -89,27 +89,29 @@ data_plot.show_plot(KalComplex, [0,20000], [-10, 30],
 # Plot EMWA filter
 emwaPlot = data_plot.plot1by1(all_csv_data[s.experiment]['time_a'], emwaData, lab='EMWA filtered combined acceleration')
 emwaPlot = data_plot.plot1by1(all_csv_data[s.experiment]['time_a'], combAcc[s.experiment], lab='combined acceleration', figure=emwaPlot, colornumber=6)
+emwaPlot = data_plot.plot1by1(peaks[1], peaks[0], lab="peaks", figure=emwaPlot, colornumber=2, points=True)
+emwaPlot = data_plot.plot1by1(valleys[1], valleys[0], lab="valleys", figure=emwaPlot, colornumber=3, points=True)
 data_plot.show_plot(emwaPlot, [0,20000], [-10, 30],
                     'magnitude', 'time', title='EMWA filter', legend=True)
 
-# Plot kalman filtered gyro data
-KalGyrX = data_plot.plot2by1(    all_csv_data[s.experiment]['time_a'], gyroKalDataX[s.experiment][0], 
-                                all_csv_data[s.experiment]['time_a'], gyroKalDataX[s.experiment][1],
-                                lab1 = 'angle', lab2= 'angular speed')
-data_plot.show_plot(KalGyrX, [0,20000], [-40, 70],
-                    'magnitude', 'timestamp', title='Kalman filtered angular velocity and position around x axis', legend=True)
+# # Plot kalman filtered gyro data
+# KalGyrX = data_plot.plot2by1(    all_csv_data[s.experiment]['time_a'], gyroKalDataX[s.experiment][0], 
+#                                 all_csv_data[s.experiment]['time_a'], gyroKalDataX[s.experiment][1],
+#                                 lab1 = 'angle', lab2= 'angular speed')
+# data_plot.show_plot(KalGyrX, [0,20000], [-40, 70],
+#                     'magnitude', 'timestamp', title='Kalman filtered angular velocity and position around x axis', legend=True)
 
-KalGyrY = data_plot.plot2by1(    all_csv_data[s.experiment]['time_a'], gyroKalDataY[s.experiment][0], 
-                                all_csv_data[s.experiment]['time_a'], gyroKalDataY[s.experiment][1],
-                                lab1 = 'angle', lab2= 'angular speed')
-data_plot.show_plot(KalGyrY, [0,20000], [-100, 50],
-                    'magnitude', 'timestamp', title='Kalman filtered angular velocity and position around y axis', legend=True)
+# KalGyrY = data_plot.plot2by1(    all_csv_data[s.experiment]['time_a'], gyroKalDataY[s.experiment][0], 
+#                                 all_csv_data[s.experiment]['time_a'], gyroKalDataY[s.experiment][1],
+#                                 lab1 = 'angle', lab2= 'angular speed')
+# data_plot.show_plot(KalGyrY, [0,20000], [-100, 50],
+#                     'magnitude', 'timestamp', title='Kalman filtered angular velocity and position around y axis', legend=True)
 
-KalGyrZ = data_plot.plot2by1(    all_csv_data[s.experiment]['time_a'], gyroKalDataZ[s.experiment][0], 
-                                all_csv_data[s.experiment]['time_a'], gyroKalDataZ[s.experiment][1],
-                                lab1 = 'angle', lab2= 'angular speed')
-data_plot.show_plot(KalGyrZ, [0,20000], [-50, 50],
-                    'magnitude', 'timestamp', title='Kalman filtered angular velocity and position around z axis', legend=True)
+# KalGyrZ = data_plot.plot2by1(    all_csv_data[s.experiment]['time_a'], gyroKalDataZ[s.experiment][0], 
+#                                 all_csv_data[s.experiment]['time_a'], gyroKalDataZ[s.experiment][1],
+#                                 lab1 = 'angle', lab2= 'angular speed')
+# data_plot.show_plot(KalGyrZ, [0,20000], [-50, 50],
+#                     'magnitude', 'timestamp', title='Kalman filtered angular velocity and position around z axis', legend=True)
 
 
 # Plot horizontal component of acceleration

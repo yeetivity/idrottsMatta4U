@@ -4,7 +4,7 @@ class Settings(object):
     """
 
     #Run settings
-    experiment = 3
+    experiment = 5
 
     #Plot settings
     padding = 5

@@ -33,6 +33,7 @@ class DataProcess(object):
         self.time = storeddata[s.experiment]['time_a']
         self.emwaData = []    
         self.horCompo = []
+        maxima = []
 
         for i in range(len(self.storeddata)):
             self.accX.append(self.storeddata[i]['accX'])
@@ -41,16 +42,15 @@ class DataProcess(object):
             self.gyroX.append(self.storeddata[i]['gyrX'])
             self.gyroY.append(self.storeddata[i]['gyrY'])
             self.gyroZ.append(self.storeddata[i]['gyrZ'])
-            #ptch = np.tan(self.storeddata[i]['accX']/(np.sqrt(self.storeddata[i]['accY']**2 + self.storeddata[i]['accZ']**2)))
-            #self.pitch.append(ptch)
+            maxima.append(len(self.storeddata[i]['time_a']))
         
-        #pitch (around x axis), roll (around y axis) & yaw (around z axis)
-        self.pitch = np.zeros((len(self.storeddata), 1035))
-        self.roll = np.zeros((len(self.storeddata), 1035))
-        self.yaw = np.zeros((len(self.storeddata), 1035))
-        self.accX_arr = np.zeros((len(self.storeddata), 1035))
-        self.accY_arr = np.zeros((len(self.storeddata), 1035))
-        self.accZ_arr = np.zeros((len(self.storeddata), 1035))
+        maximum = max(maxima)
+        self.pitch = np.zeros((len(self.storeddata), maximum))
+        self.roll = np.zeros((len(self.storeddata), maximum))
+        self.yaw = np.zeros((len(self.storeddata), maximum))
+        self.accX_arr = np.zeros((len(self.storeddata), maximum))
+        self.accY_arr = np.zeros((len(self.storeddata), maximum))
+        self.accZ_arr = np.zeros((len(self.storeddata), maximum))
 
         for i in range(len(self.storeddata)):
             for j in range(len(self.accX[i])):
