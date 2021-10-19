@@ -20,10 +20,11 @@ start_time = t.time()
 """
 ------------------------------LOADING DATA ------------------------------
 """
-# Load all the JSON files - Automatic reading from a folder
-data = DataRead()                                                     # Initialise the datareading class
-paths = sorted(glob.glob('JSON_DATA/Experiment1/'+ "/*.json"))        # Read all the seperate paths for every .json file
-all_json_data = data.load_jsons(paths)                                # Use load_all function to create an array with all data
+data = DataRead() # Initialise the datareading class
+
+# # Load all the JSON files - Automatic reading from a folder                                    
+# paths = sorted(glob.glob('JSON_DATA/Experiment1/'+ "/*.json"))        # Read all the seperate paths for every .json file
+# all_json_data = data.load_jsons(paths)                                # Use load_all function to create an array with all data
 
 # Load all CSV acc files - Automatic reading from a folder
 paths = sorted(glob.glob('CSV_DATA/ACC/'+ "/*.csv"))
@@ -62,7 +63,7 @@ horCompo = processed_data.horizontalComponent(gyroKalDataX) # Horizontal compone
 # Plot combined acceleration and raw x acceleration #Todo finish automatic scaling
 data_plot = DataPlot()
 accPlot = data_plot.plot1by1(all_csv_data[s.experiment]['time_a'], combAcc[s.experiment], lab='combined acceleration')
-accPlot = data_plot.plot1by1(all_csv_data[s.experiment]['time_a'], all_csv_data[s.experiment]['accX'], lab='raw x acceleration', figure=accPlot, linenumber=6)
+accPlot = data_plot.plot1by1(all_csv_data[s.experiment]['time_a'], all_csv_data[s.experiment]['accX'], lab='raw x acceleration', figure=accPlot, colornumber=6)
 data_plot.show_plot(accPlot, [0,all_csv_data[s.experiment]['time_a'][-1]], [ (combAcc[s.experiment].min() - s.padding),(combAcc[s.experiment].max() + s.padding)],
                      'magnitude', 'timestamp', title='Combined acceleration and raw x acceleration', legend=True)
 
