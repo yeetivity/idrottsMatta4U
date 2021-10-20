@@ -26,13 +26,13 @@ data = Data.read(folderpath, filetype='csv')
 """
 processed_data = DataProcess(data)
 
-combAcc = processed_data.combineAccelerations()                     # Combine accelerations
+# Raw data processing
+combAcc = processed_data.combineAccelerations()                                  # Combine accelerations
+peaks, valleys, indices = processed_data.stepRegistration(combAcc[s.experiment]) # Find the peaks and valleys of the combined acceleration
+
+# Filtering
 emwaData = processed_data.emwaFilter(combAcc[s.experiment],0.85)    # Apply EMWA filter to combined accelerations and use alpha=0.85
-accKalData = processed_data.complexKalmanFilter(combAcc)            # Apply kalman filter to combined acceleration
-
-peaks, valleys = processed_data.stepRegistration(combAcc[s.experiment]) # Find the peaks and valleys of the combined acceleration
-
-
+accKalData = processed_data.complexKalmanFilter(combAcc[s.experiment], indices)            # Apply kalman filter to combined acceleration
 
 # Kalman filtered gyro data    
 gyroKalDataX = processed_data.complexKalmanFilterGyro(processed_data.gyroX, processed_data.kalGyroX, processed_data.pitch)
@@ -58,9 +58,9 @@ data_plot.show_plot(accSubSubPlot, x_lim=[0,20000], y_lim=[-10, 30],
 
 
 # Plot complex kalman filtered data
-KalComplex = data_plot.plot3by1(    data[s.experiment]['time_a'], accKalData[s.experiment][0], 
-                                    data[s.experiment]['time_a'], accKalData[s.experiment][1],
-                                    data[s.experiment]['time_a'], accKalData[s.experiment][2],
+KalComplex = data_plot.plot3by1(    data[s.experiment]['time_a'], accKalData[0], 
+                                    data[s.experiment]['time_a'], accKalData[1],
+                                    data[s.experiment]['time_a'], accKalData[2],
                                     lab1= 'position', lab2 ='speed', lab3='acceleration')
 data_plot.show_plot(KalComplex, x_lim=[0,20000], y_lim=[-10, 30],
                     y_label='magnitude', x_label='time', title='Position, speed and acceleration', legend=True)
