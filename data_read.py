@@ -1,5 +1,7 @@
 import json
 import csv
+import sys
+import glob
 import numpy as np
 from matplotlib import pyplot as plt
 
@@ -12,26 +14,30 @@ class DataRead():
     def __init__(self):
         """
         Initialising the class
-
-        =INPUT=
-
-        =OUTPUT=
-
-        =NOTES=
-
         """
+
         self.data = []
-        self.transformeddata = []
+        self.transdata = []
+        return 
 
-        return
 
-    def load_json(self, path):
-        """
-        Funtion that reads a single JSON file
-        """
-        f = open(path)
-        data = json.load(f)
+    def read(self, folderpath, filetype='csv'):
+        if (filetype == 'csv'):
+            p = sorted(glob.glob(folderpath + '/ACC' + "/*.csv"))
+            data_acc = self.load_csvs(p)
+            self.transform_csvformat(data_acc, type='acc')
 
+            p = sorted(glob.glob(folderpath + '/GYRO' + "/*.csv"))
+            data_gyr = self.load_csvs(p)
+            data = self.transform_csvformat(data_gyr, type='gyro')
+
+        elif (filetype == 'json'):
+            p = sorted(glob.glob(folderpath + "/*.json"))
+            data = self.load_jsons(p)
+
+        else:
+            sys.exit('Wrong filetype is given')
+        
         return data
 
     def load_jsons(self, paths):
@@ -51,24 +57,13 @@ class DataRead():
 
         return self.data
 
-
-    def load_csv(self, path):
-        """
-        Function that reads a single CSV
-        """
-        with open(path, newline='') as csvfile:
-            data = list(csv.reader(csvfile))
-
-        return data
-
-    
+   
     def load_csvs(self, paths):
         """
         Function that reads a folder of CSV files
 
         =INPUT=
             self        Datastructure to save the read data in
-            folderpath  Path to the folder that should be read
             paths       array with relative paths to the seperate files
         =OUTPUT=
             self.data   Datastructure with all the data
@@ -81,39 +76,43 @@ class DataRead():
         return self.csvdata
 
 
-    def transform_csvformat(self, data_container, acc = True):
+    def transform_csvformat(self, data_container, type='acc'):
+        """
+        Function that transforms the sorting of the data output
 
-        # fill in the array
-        i = 0
+        =INPUT=
+            self                Datastructure to save the read data in
+            data_container      Data_container that needs to be transformed
+        =OUTPUT=
+            self.transdata      Datastructure with all the transformed data
+        """
+
         for i in range(len(data_container)):
-            if (acc == True):
-                self.transformeddata.append({'accX': [], 'accY': [], 'accZ': [], 'gyrX': [], 'gyrY': [], 'gyrZ': [], 'time_a': [], 'time_g': []})
+            # Transforming data
+            if (type == 'acc'):             # Fill in the acceleration data
+                self.transdata.append({'accX': [], 'accY': [], 'accZ': [], 'gyrX': [], 'gyrY': [], 'gyrZ': [], 'time_a': [], 'time_g': []})
                 for ii in range(len(data_container[i])):
                     if (ii != 0):
-                        self.transformeddata[i]['time_a'].append(float(data_container[i][ii][0]))
-                        self.transformeddata[i]['accX'].append(float(data_container[i][ii][1]))
-                        self.transformeddata[i]['accY'].append(float(data_container[i][ii][2]))
-                        self.transformeddata[i]['accZ'].append(float(data_container[i][ii][3]))
-
-            else:
+                        self.transdata[i]['time_a'].append(float(data_container[i][ii][0]))
+                        self.transdata[i]['accX'].append(float(data_container[i][ii][1]))
+                        self.transdata[i]['accY'].append(float(data_container[i][ii][2]))
+                        self.transdata[i]['accZ'].append(float(data_container[i][ii][3]))
+            else:                           # Fill in the gyro data
                 for jj in range(len(data_container[i])):
                     if (jj != 0):
-                        self.transformeddata[i]['time_g'].append(float(data_container[i][jj][0]))
-                        self.transformeddata[i]['gyrX'].append(float(data_container[i][jj][1]))
-                        self.transformeddata[i]['gyrY'].append(float(data_container[i][jj][2]))
-                        self.transformeddata[i]['gyrZ'].append(float(data_container[i][jj][3]))
+                        self.transdata[i]['time_g'].append(float(data_container[i][jj][0]))
+                        self.transdata[i]['gyrX'].append(float(data_container[i][jj][1]))
+                        self.transdata[i]['gyrY'].append(float(data_container[i][jj][2]))
+                        self.transdata[i]['gyrZ'].append(float(data_container[i][jj][3]))
             
-            # Check if times are the same
-            if (self.transformeddata[i]['time_a'] == self.transformeddata[i]['time_g']):
-                # make timestamps relative to each other
-                if ((self.transformeddata[i]['time_a'] != 0) and (self.transformeddata[i]['time_g'] != 0)):
-                    self.transformeddata[i]['time_a'] = np.array(self.transformeddata[i]['time_a']) - self.transformeddata[i]['time_a'][0]
-                    self.transformeddata[i]['time_g'] = np.array(self.transformeddata[i]['time_g']) - self.transformeddata[i]['time_g'][0]
-            # If one of the two is still empty do nothing
-            elif ((self.transformeddata[i]['time_g'] == []) or (self.transformeddata[i]['time_a'] == [])):
+            # Time check
+            if (self.transdata[i]['time_a'] == self.transdata[i]['time_g']):
+                if ((self.transdata[i]['time_a'] != 0) and (self.transdata[i]['time_g'] != 0)):     #transform begin time to zero
+                    self.transdata[i]['time_a'] = np.array(self.transdata[i]['time_a']) - self.transdata[i]['time_a'][0]
+                    self.transdata[i]['time_g'] = np.array(self.transdata[i]['time_g']) - self.transdata[i]['time_g'][0]
+            elif ((self.transdata[i]['time_g'] == []) or (self.transdata[i]['time_a'] == [])):      #If one of the times is still empty skip the loop
                 pass
-            # If they are not the same
             else:
-                print('ERROR, timearrays are no the same')
+                sys.exit("Timestamps are not the same")
 
-        return self.transformeddata
+        return self.transdata
