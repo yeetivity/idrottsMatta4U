@@ -176,11 +176,11 @@ class DataProcess(object):
             
             X = X[:,1:]
 
-            i=0
-            for jj in range(len(reset_times)):
-                X = np.delete(X, reset_times[i],1)
-                if (i<(len(reset_times)-1)):
-                        i +=1
+            # i=0
+            # for jj in range(len(reset_times)):
+            #     X = np.delete(X, reset_times[i],1)
+            #     if (i<(len(reset_times)-1)):
+            #             i +=1
 
             self.kalData = X
 
@@ -200,16 +200,20 @@ class DataProcess(object):
 
         # Initiliaze some filter values
         R = 10                                      # Some scalar
-        x = np.array([  [0],
-                        [0],
-                        [0]])                       # Position, velocity, acceleration
+                              
         if (index == 0):
+            x = np.array([  [0],                    # Position, velocity, acceleration
+                            [0],
+                            [0]]) 
             X = x
         else:
-            X = np.hstack((X,x))
+            x = np.array([  [X[0][index]],
+                            [X[1][index]],
+                            [X[2][index]]])
+            # X = np.hstack((X,x))
 
         z = z
-        y = np.subtract( z[index], np.dot(H,x))         # Comparing predicted value with measurement
+        y = np.subtract( z[index], np.dot(H, x))         # Comparing predicted value with measurement
         return A, P, Q, H, R, x, X, z, y
         
 
