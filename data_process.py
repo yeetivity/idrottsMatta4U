@@ -102,7 +102,7 @@ class DataProcess(object):
         return self.simple_kalAcc
 
 
-    def complexKalmanFilter(self, data_to_filter, B=None, u=None):
+    def complexKalmanFilter(self, data_to_filter, reset_times, B=None, u=None):
         """
         Kalman with multiple dimensions
 
@@ -120,58 +120,102 @@ class DataProcess(object):
             u = np.zeros((3,1))
         else:
             pass
-
         
-        for i in range(len(data_to_filter)):
-        # settings for acc kalman
-            A = np.array([  [1, self.dT, 0.5 * self.dT**2],
-                            [0, 1, self.dT],
-                            [0, 0, 1]])                 # State transition matrix
-            P = np.array([  [0, 0, 0],
-                            [0, 0, 0],
-                            [0, 0, 10]])                # State covariance matrix
-            Q = np.array([  [0, 0, 0],
-                            [0, 0, 0],
-                            [0, 0, 0.5]])               # Process noise covariance matrix
-            H = np.array([0, 0, 1])                     # Measurement matrix
+        if (len(data_to_filter) <= 100):
+            for i in range(len(data_to_filter)):
+                # Initialisation of filter
+                A, P, Q, H, R, x, X = self.resetKalman()
+                z = data_to_filter[i]
+                y = np.subtract( z[0], np.dot(H,x))         # Comparing predicted value with measurement
 
-            # Initiliaze some filter values
-            R = 10                                      # Some scalar
-            z = data_to_filter[i]
-            x = np.array([  [0],
-                            [0],
-                            [0]])                       # Position, velocity, acceleration
-            y = np.subtract( z[0], np.dot(H,x))         # Comparing predicted value with measurement
-            X = x
+                # Filtering
+                for j in range (len(z)):
+                    
+                    # PREDICTION VALUES
+                    x = np.dot(A,x) #+ np.dot(B, u)
+                    P = np.add( (np.dot(np.dot(A,P), A.transpose())), Q)
+                    
+                    # MEASUREMENT VALUES
+                    y = np.subtract(z[j], np.dot(H, x))
+                    K = np.dot( P, H.transpose()) / (np.dot(np.dot(H, P), H.transpose()) + R)
 
-            # filtering
+                    # UPDATE X AND P
+                    for ii in range(0,3):
+                        x[ii] = x[ii] + y*K[ii]
+
+                    P = np.dot(np.subtract(1, np.dot(K,H)), P)
+                    X = np.hstack((X, x))
+
+                X = X[:,1:]
+                self.kalData.append(X)
+        
+        elif (len(data_to_filter) >= 100):
+            i=0
+            A, P, Q, H, R, x, X, z, y = self.resetKalman(data_to_filter, i, X=None)
+
             for j in range (len(z)):
-                
+                if (j == reset_times[i]):
+                    A, P, Q, H, R, x, X, z, y = self.resetKalman(data_to_filter, j, X=X)
+                    if (i<(len(reset_times)-1)):
+                        i +=1
+
                 # PREDICTION VALUES
-                    # x = Ax + Bu
                 x = np.dot(A,x) #+ np.dot(B, u)
-                    # P = A P A^T + Q
                 P = np.add( (np.dot(np.dot(A,P), A.transpose())), Q)
                 
                 # MEASUREMENT VALUES
-                    # Y = Z - H X
                 y = np.subtract(z[j], np.dot(H, x))
-                    # K = (P H^T) / ( ( HPH^T) + R)
                 K = np.dot( P, H.transpose()) / (np.dot(np.dot(H, P), H.transpose()) + R)
 
                 # UPDATE X AND P
-                    # X = X + KY
                 for ii in range(0,3):
                     x[ii] = x[ii] + y*K[ii]
-                    # P = (1 - KH) P
+
                 P = np.dot(np.subtract(1, np.dot(K,H)), P)
-                
                 X = np.hstack((X, x))
+            
             X = X[:,1:]
-            self.kalData.append(X)
+
+            # i=0
+            # for jj in range(len(reset_times)):
+            #     X = np.delete(X, reset_times[i],1)
+            #     if (i<(len(reset_times)-1)):
+            #             i +=1
+
+            self.kalData = X
 
         return self.kalData
 
+    def resetKalman(self, z, index, X=None):
+        A = np.array([  [1, self.dT, 0.5 * self.dT**2],
+                        [0, 1, self.dT],
+                        [0, 0, 1]])                 # State transition matrix
+        P = np.array([  [0, 0, 0],
+                        [0, 0, 0],
+                        [0, 0, 10]])                # State covariance matrix
+        Q = np.array([  [0, 0, 0],
+                        [0, 0, 0],
+                        [0, 0, 0.5]])               # Process noise covariance matrix
+        H = np.array([0, 0, 1])                     # Measurement matrix
+
+        # Initiliaze some filter values
+        R = 10                                      # Some scalar
+                              
+        if (index == 0):
+            x = np.array([  [0],                    # Position, velocity, acceleration
+                            [0],
+                            [0]]) 
+            X = x
+        else:
+            x = np.array([  [X[0][index]],
+                            [X[1][index]],
+                            [X[2][index]]])
+            # X = np.hstack((X,x))
+
+        z = z
+        y = np.subtract( z[index], np.dot(H, x))         # Comparing predicted value with measurement
+        return A, P, Q, H, R, x, X, z, y
+        
 
     def complexKalmanFilterGyro(self, gyro_data, filtered_gyro, control_data, B=None, u=None):      #Todo: Add correction for w acc
         """
@@ -317,7 +361,7 @@ class DataProcess(object):
 
         maxima = [[],[]]        # Array with maxima
         minima = [[],[]]        # Array with minima
-
+        indices = []
 
         #* Valid valley detection
         # 1. Minima detection
@@ -343,6 +387,7 @@ class DataProcess(object):
             if ((combAcc[i] > combAcc[i+1]) and (combAcc[i] > combAcc[i-1]) and (combAcc[i] > TH_pk)):
                 maxima[0].append(combAcc[i])
                 maxima[1].append(self.time[i])
+                indices.append(i)
 
         # 2. Single Peak Detection with temporal threshold constraint
         j = 1
@@ -351,6 +396,7 @@ class DataProcess(object):
                 index = maxima[0].index(min([maxima[0][j],maxima[0][j-1]]))     # Determine the index of the smallest peak
                 maxima[0].pop(index)                                            # Delete smallest peak
                 maxima[1].pop(index)
+                indices.pop(index)
                 j = j
             else:
                 j+= 1
@@ -362,5 +408,5 @@ class DataProcess(object):
         # Results
         print('Amount of peaks:', len(maxima[0]))
         print('Amount of valleys:', len(minima[0]))
-        return maxima, minima
+        return maxima, minima, indices
 

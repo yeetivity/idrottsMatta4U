@@ -3,40 +3,36 @@ import numpy as np
 
 class DataPlot(object):
     """
-    Class to plot the data that is imported from DataRead
+    Class to plot the data
     """
 
     def __init__(self):
         """
-        =INPUT=
-        readdata:
-            readdata is an array filled with the dictionaries that define the data
-        
-        =NOTES=
-            In the JSON files the gyrometer data is somehow called magnetometer data, therefore we correct this mistake here by renaming mag into gyr
         """
 
-        self.colors = ( (0, 0, 0.99608),                                # Blue
-                        (0, 0.50196, 0.99608),                          # A bit less blue
-                        (0, 0.99608, 0.99608),                          # A lot less blue, a bit more yellow
-                        (0.50196, 0.99608, 0.50196),                    # Even more yellow
-                        (0.99608, 0.99608, 0),                          # fully yellow
-                        (0.99608, 0.50196, 0),                          # bit less yellow, bit more red
-                        (0.99608, 0, 0),                                # A lot more red
-                        (0.50196, 0, 0))                                # 'You have spilled wine' red
+        self.colors = ( (0.61176, 0.04314, 0.95686),                    # Purple
+                        (0.00000, 0.00000, 0.00000),                    # Black
+                        (0.48235, 0.82745, 0.53725),                    # Emerald
+                        (0.37255, 0.65882, 0.82745),                    # Carolina Blue
+                        (0.05098, 0.12941, 0.63137),                    # Blue Pantone
+                        (0.24706, 0.05098, 0.07059))                    # Dark Sienna
+
         self.marker = ('o' , 'v', 'x', '+', 'd')                        # Some markers
 
         return
     
     
-    def plot1by1(self, xdata, ydata, lab='', figure=None, colornumber=1, points=False):
+    def plot1by1(self, xdata, ydata, lab='', figure=None, cnr=1, points=False, mnr=1):
         """
         =INPUT=
         xdata       data that should be plotted on x axis
         ydata       data that should be plotted on y axis
         label       label that should be given to the data
         figure      figure data should be plotted on, initialized to be none
-        colornumber number of the line you are plotting
+        cnr         number of the color that you want to use
+        points      if True, plot points instead of line
+        mnr         number of the marker you want to use
+
 
         =OUTPUT=
         figure      keeps the current figure
@@ -52,11 +48,11 @@ class DataPlot(object):
         
         # Plotting the data
         if points is False:
-            ax.plot(xdata, ydata, color=self.colors[colornumber-1], linestyle= '-', label = lab)
+            ax.plot(xdata, ydata, color=self.colors[cnr%6], linestyle= '-', label = lab)
 
         if points is True:
-            ax.plot(xdata, ydata, marker=self.marker[colornumber], linestyle= 'None',
-                markersize=8, markerfacecolor=(1, 1, 1, 0), markeredgecolor=self.colors[colornumber])
+            ax.plot(xdata, ydata, marker=self.marker[mnr%5], linestyle= 'None',
+                markersize=8, markerfacecolor=(1, 1, 1, 0), markeredgecolor=self.colors[cnr%6])
 
         return figure
 
@@ -106,7 +102,7 @@ class DataPlot(object):
         
 
     def plot2by1(   self, xdata1, ydata1, xdata2=None, ydata2=None, lab1 = '', lab2 = '',
-                    figure=None, subplotnumber=None, linenumber1=0, linenumber2=1):
+                    figure=None, subplotnumber=None, linenumber1=1, linenumber2=2):
         """
         =INPUT=
         xdata       data that should be plotted on x axis
@@ -187,7 +183,7 @@ class DataPlot(object):
 
     def plot3by1(   self, xdata1, ydata1, xdata2=None, ydata2=None, xdata3=None, ydata3=None,
                     lab1 = '', lab2 = '', lab3= '', figure=None, subplotnumber=None,
-                    linenumber1=0, linenumber2=1, linenumber3=2):
+                    linenumber1=1, linenumber2=2, linenumber3=3):
         """
         =INPUT=
         xdata       data that should be plotted on x axis
@@ -253,7 +249,7 @@ class DataPlot(object):
         return figure
 
 
-    def show_plot(self, figure, x_lim, y_lim, y_label, x_label, title, backgroundcolor=(0.827, 0.827, 0.827), legend=False):
+    def show_plot(self, figure, y_label, x_label, title, backgroundcolor=(0.827, 0.827, 0.827), legend=False,  x_lim=None, y_lim=None):
         """
         =INPUT=
         figure:
@@ -266,11 +262,9 @@ class DataPlot(object):
             string that will become figure title
         backgroundcolor:
             array of RGB 0-1 values
-            initialised to be white (1,1,1)
+            initialised to be grey (1,1,1)
 
         =NOTES=
-        Legend is now overly full, however does show what marker/color is what
-        ToDo: find way to create more generalized legend
         """
         for i in range(len(figure.axes)):
             ax = figure.axes[i]
@@ -278,7 +272,7 @@ class DataPlot(object):
 
             if len(figure.axes) != 1:
                 figure.suptitle(title)
-                ax.set_title(subplottitles[i])
+                #ax.set_title(subplottitles[i])
 
             else:
                 ax.set_title(title)
@@ -288,8 +282,10 @@ class DataPlot(object):
             ax.set_xlabel(x_label)
 
             #Add axis definitions
-            ax.set_ylim(y_lim)
-            ax.set_xlim(x_lim)
+            if y_lim is not None:
+                ax.set_ylim(y_lim)
+            if x_lim is not None:
+                ax.set_xlim(x_lim)
 
             #Change background color
             ax.set_facecolor(backgroundcolor)
