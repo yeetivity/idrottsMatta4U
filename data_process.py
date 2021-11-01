@@ -311,23 +311,27 @@ class DataProcess(object):
         """
 
         # init list with horizontal components
-        self.horCompo = []
+        self.acc_fixed_coord = np.zeros((3,1))
+        rotation_matrix = np.zeros((3,3))
         
-        for i in range(len(angle)):
+        for i in range(len(angle)): #experiments
 
             #takes one row of self.accZ (one experiment)
-            Z = self.combAcc[i]
-            self.horCompoNew = []
+            acc_sensor_coord = np.array(    [self.accX[i],
+                                            self.accY[i],
+                                            self.accZ[i]])
 
             # all the values in one experiment
-            for j in range(len(Z)):
+            for j in range(len(acc_sensor_coord[0])):
                 #! np.cos takes radians 
                 # Todo: check if kalmangyro outputs radians
-                self.horCompoNew.append(Z[j] * np.cos(angle[i][0][j])) #[0]=angle, [1]=angular velocity
+                rotation_matrix = np.array([    [np.cos(angle[i][0][j]),    0,  -np.sin(angle[i][0][j])],
+                                                [0,                         1,     0],
+                                                [np.sin(angle[i][0][j]),    0,  np.cos(angle[i][0][j])]])
+                self.acc_fixed_coord = np.dot(rotation_matrix, acc_sensor_coord[:,[j]]) #np.cos(angle[i][0][j])) #[0]=angle, [1]=angular velocity
             
-            self.horCompo.append(self.horCompoNew)
             
-        return self.horCompo
+        return self.acc_fixed_coord #needs to be changed
     
     
     def emwaFilter(self,data,alpha):

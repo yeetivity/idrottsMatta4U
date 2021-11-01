@@ -5,7 +5,7 @@ Processing IMU data and visualising sprint data
 import numpy as np
 import time as t
 import matplotlib
-matplotlib.use("Qt5Agg")
+matplotlib.use("TkAgg")
 
 from settings import Settings as s
 from data_read import DataRead
