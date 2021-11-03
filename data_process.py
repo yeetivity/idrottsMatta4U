@@ -33,6 +33,8 @@ class DataProcess(object):
         self.time = storeddata[s.experiment]['time_a']
         self.emwaData = []    
         self.horCompo = []
+
+        #Todo ! CHECK IF WE ACTUALLY NEED THIS STUFF
         maxima = []
 
         for i in range(len(self.storeddata)):
@@ -48,7 +50,7 @@ class DataProcess(object):
         self.pitch = np.zeros((len(self.storeddata), maximum))
         self.roll = np.zeros((len(self.storeddata), maximum))
         self.yaw = np.zeros((len(self.storeddata), maximum))
-        self.accX_arr = np.zeros((len(self.storeddata), maximum))
+        self.accX_arr = np.zeros((len(self.storeddata), maximum))       #! Can't we make everything an array?
         self.accY_arr = np.zeros((len(self.storeddata), maximum))
         self.accZ_arr = np.zeros((len(self.storeddata), maximum))
 
@@ -66,7 +68,7 @@ class DataProcess(object):
     
     def combineAccelerations(self):
         """
-        Function that processes the accelerations
+        Function that combines the accelerations
         """
         for i in range(len(self.storeddata)):
             self.combAcc.append(np.sqrt(np.square(self.storeddata[i]['accX']) + 
@@ -129,6 +131,7 @@ class DataProcess(object):
                 y = np.subtract( z[0], np.dot(H,x))         # Comparing predicted value with measurement
 
                 # Filtering
+                # Todo: See if we can put code line 135-150 in a function (since elif also uses it)
                 for j in range (len(z)):
                     
                     # PREDICTION VALUES
@@ -176,17 +179,14 @@ class DataProcess(object):
             
             X = X[:,1:]
 
-            # i=0
-            # for jj in range(len(reset_times)):
-            #     X = np.delete(X, reset_times[i],1)
-            #     if (i<(len(reset_times)-1)):
-            #             i +=1
-
             self.kalData = X
 
         return self.kalData
 
     def resetKalman(self, z, index, X=None):
+        """
+        Todo: Add documentation
+        """
         A = np.array([  [1, self.dT, 0.5 * self.dT**2],
                         [0, 1, self.dT],
                         [0, 0, 1]])                 # State transition matrix
@@ -220,6 +220,8 @@ class DataProcess(object):
     def complexKalmanFilterGyro(self, gyro_data, filtered_gyro, control_data, B=None, u=None):      #Todo: Add correction for w acc
         """
         Kalman with multiple dimensions, for gyro
+        
+        TODO: can't this function be merged with the other complexKalmanFilter?
 
         =INPUT=
             B               init to be none
@@ -296,11 +298,11 @@ class DataProcess(object):
 
         return filtered_gyro
 
-    # function to get the horizontal component #Todo: check if right axes are used. 
+
     def horizontalComponent(self, angle):
         """
-        Horizontal component of acc (or vel)
-
+        Compute the horizontal component of acc (or vel)
+        #Todo: check if right axes are used.
         =INPUT=
             angle: angles given out by kalman filter on gyro (6x2x1 array:
                         [experiment][angle=0 (degrees), angular velocity = 1][timestamp])
@@ -311,8 +313,8 @@ class DataProcess(object):
         """
 
         # init list with horizontal components
-        self.acc_fixed_coord = np.zeros((3,1))
-        rotation_matrix = np.zeros((3,3))
+        self.acc_fixed_coord = np.zeros((3,1))  #! Why is this in self? Does another function need it?
+        rotation_matrix = np.zeros((3,3))       #! Not sure if we need this initialisation step
         
         for i in range(len(angle)): #experiments
 
@@ -329,6 +331,7 @@ class DataProcess(object):
                                                 [0,                         1,     0],
                                                 [np.sin(angle[i][0][j]),    0,  np.cos(angle[i][0][j])]])
                 self.acc_fixed_coord = np.dot(rotation_matrix, acc_sensor_coord[:,[j]]) #np.cos(angle[i][0][j])) #[0]=angle, [1]=angular velocity
+                #! Self.acc_fixed_coord is being overwritten in every loop. Don't know if that is what you want?
             
             
         return self.acc_fixed_coord #needs to be changed

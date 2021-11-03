@@ -39,7 +39,7 @@ gyroKalDataX = processed_data.complexKalmanFilterGyro(processed_data.gyroX, proc
 gyroKalDataY = processed_data.complexKalmanFilterGyro(processed_data.gyroY, processed_data.kalGyroY, processed_data.roll)
 gyroKalDataZ = processed_data.complexKalmanFilterGyro(processed_data.gyroZ, processed_data.kalGyroZ, processed_data.yaw)
 
-horCompo = processed_data.horizontalComponent(gyroKalDataX) # Horizontal component of acceleration
+horComp = processed_data.horizontalComponent(gyroKalDataX) # Horizontal component of acceleration
 
 """
 ------------------------------PLOTTING DATA ------------------------------
@@ -75,7 +75,7 @@ data_plot.show_plot(emwaPlot, x_lim=[0,20000], y_lim=[-10, 30],
 
 
 # Plot horizontal component of acceleration
-HorAcc = data_plot.plot1by1(data[s.experiment]['time_a'], horCompo[s.experiment], lab='horizontal component of acceleration')
+HorAcc = data_plot.plot1by1(data[s.experiment]['time_a'], horComp[s.experiment], lab='horizontal component of acceleration')
 data_plot.show_plot(HorAcc, x_lim=[0,20000], y_lim=[-10, 30],
                     y_label='magnitude', x_label='time', title='Horizontal acceleration', legend=True)
 
