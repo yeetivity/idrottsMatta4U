@@ -13,5 +13,5 @@ class Settings(object):
     gravity = 9.81
 
     #IMU settings
-    samplingfreq = 1/52
+    f_sampling = 1/52
     

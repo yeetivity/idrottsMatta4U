@@ -7,43 +7,23 @@ class DataProcess(object):
     """
     def __init__(self, storeddata): #TODO clean up the init
         self.storeddata = storeddata
+        self.gyro = [[],[],[]]
+        self.acc = [[],[],[]]
+        self.time = storeddata[s.experiment]['time_a'] 
 
-        self.gyroX = [] 
-        self.gyroY = []
-        self.gyroZ = []
-
-        self.accX = []
-        self.accY = []
-        self.accZ = []
         self.combAcc = []
-
-        self.gravity = s.gravity
-        self.dT = s.samplingfreq
-
-        self.simple_kalAcc = [] 
         self.kalData = []
 
-        self.kalAcc = []
-        self.kalVel = []
-        self.kalPos = []
-        self.kalGyroX = []
-        self.kalGyroY = []
-        self.kalGyroZ = []
-
-        self.time = storeddata[s.experiment]['time_a']
-        self.emwaData = []    
-        self.horCompo = []
-
-        #Todo ! CHECK IF WE ACTUALLY NEED THIS STUFF
         maxima = []
 
+        # Fill in the storeddata
         for i in range(len(self.storeddata)):
-            self.accX.append(self.storeddata[i]['accX'])
-            self.accY.append(self.storeddata[i]['accY'])
-            self.accZ.append(self.storeddata[i]['accZ'])
-            self.gyroX.append(self.storeddata[i]['gyrX'])
-            self.gyroY.append(self.storeddata[i]['gyrY'])
-            self.gyroZ.append(self.storeddata[i]['gyrZ'])
+            self.acc[0].append(self.storeddata[i]['accX'])
+            self.acc[1].append(self.storeddata[i]['accY'])
+            self.acc[2].append(self.storeddata[i]['accZ'])
+            self.gyro[0].append(self.storeddata[i]['gyrX'])
+            self.gyro[1].append(self.storeddata[i]['gyrY'])
+            self.gyro[2].append(self.storeddata[i]['gyrZ'])
             maxima.append(len(self.storeddata[i]['time_a']))
         
         maximum = max(maxima)
@@ -54,11 +34,12 @@ class DataProcess(object):
         self.accY_arr = np.zeros((len(self.storeddata), maximum))
         self.accZ_arr = np.zeros((len(self.storeddata), maximum))
 
+        # Check if we want this in initialisation. 
         for i in range(len(self.storeddata)):
-            for j in range(len(self.accX[i])):
-                self.accX_arr[i][j] = self.accX[i][j]
-                self.accY_arr[i][j] = self.accY[i][j]
-                self.accZ_arr[i][j] = self.accZ[i][j]
+            for j in range(len(self.acc[0][i])):
+                self.accX_arr[i][j] = self.acc[0][i][j]
+                self.accY_arr[i][j] = self.acc[1][i][j]
+                self.accZ_arr[i][j] = self.acc[2][i][j]
                 self.pitch[i][j] = np.tan(self.accX_arr[i][j]/ (np.sqrt(self.accY_arr[i][j]**2 + self.accZ_arr[i][j]**2)))
                 self.roll[i][j] = np.tan(self.accY_arr[i][j]/ (np.sqrt(self.accX_arr[i][j]**2 + self.accZ_arr[i][j]**2)))
                 self.yaw[i][j] = np.tan((np.sqrt(self.accX_arr[i][j]**2 + self.accY_arr[i][j]**2))/self.accZ_arr[i][j])
@@ -83,6 +64,8 @@ class DataProcess(object):
         """
         Kalman with one dimension
         """
+
+        acc_simpKal = []
         for i in range(len(self.combAcc)):
             z = self.combAcc[i]
             P = np.zeros(len(self.combAcc[i]))
@@ -100,8 +83,8 @@ class DataProcess(object):
                 x[j] = x[j-1] + K[j] * (z[j] - x[j-1])
                 P[j] = (1 - K[j]) * (P[j-1] + Q)
 
-            self.simple_kalAcc.append(x)
-        return self.simple_kalAcc
+            acc_simpKal.append(x)
+        return acc_simpKal
 
 
     def complexKalmanFilter(self, data_to_filter, reset_times, B=None, u=None):
@@ -116,6 +99,8 @@ class DataProcess(object):
         =OUTPUT=
             self.kalData    6x3x1024 array with:
                             [experiment][pos=0, velocity = 1, acceleration = 2][timestamp]
+
+        Todo Check if self.kalData needs to be global or local (using overwriting and such)
         """
         if (B is None) and (u is None):
             B = np.zeros((3,3))
@@ -128,26 +113,12 @@ class DataProcess(object):
                 # Initialisation of filter
                 A, P, Q, H, R, x, X = self.resetKalman()
                 z = data_to_filter[i]
-                y = np.subtract( z[0], np.dot(H,x))         # Comparing predicted value with measurement
+                y = np.subtract( z[0], np.dot(H,x))         # don't think this actually does something
 
                 # Filtering
                 # Todo: See if we can put code line 135-150 in a function (since elif also uses it)
                 for j in range (len(z)):
-                    
-                    # PREDICTION VALUES
-                    x = np.dot(A,x) #+ np.dot(B, u)
-                    P = np.add( (np.dot(np.dot(A,P), A.transpose())), Q)
-                    
-                    # MEASUREMENT VALUES
-                    y = np.subtract(z[j], np.dot(H, x))
-                    K = np.dot( P, H.transpose()) / (np.dot(np.dot(H, P), H.transpose()) + R)
-
-                    # UPDATE X AND P
-                    for ii in range(0,3):
-                        x[ii] = x[ii] + y*K[ii]
-
-                    P = np.dot(np.subtract(1, np.dot(K,H)), P)
-                    X = np.hstack((X, x))
+                    x, P, K, P, X = self.runFilter(A,x,X,P,Q,z,H,j,R)
 
                 X = X[:,1:]
                 self.kalData.append(X)
@@ -162,20 +133,7 @@ class DataProcess(object):
                     if (i<(len(reset_times)-1)):
                         i +=1
 
-                # PREDICTION VALUES
-                x = np.dot(A,x) #+ np.dot(B, u)
-                P = np.add( (np.dot(np.dot(A,P), A.transpose())), Q)
-                
-                # MEASUREMENT VALUES
-                y = np.subtract(z[j], np.dot(H, x))
-                K = np.dot( P, H.transpose()) / (np.dot(np.dot(H, P), H.transpose()) + R)
-
-                # UPDATE X AND P
-                for ii in range(0,3):
-                    x[ii] = x[ii] + y*K[ii]
-
-                P = np.dot(np.subtract(1, np.dot(K,H)), P)
-                X = np.hstack((X, x))
+                x, P, K, P, X = self.runFilter(A,x,X,P,Q,z,H,j,R)
             
             X = X[:,1:]
 
@@ -183,12 +141,32 @@ class DataProcess(object):
 
         return self.kalData
 
+
+    def runFilter(self, A, x, X, P, Q, z, H, j, R):
+        # PREDICTION VALUES
+        x = np.dot(A,x) #+ np.dot(B, u)
+        P = np.add( (np.dot(np.dot(A,P), A.transpose())), Q)
+        
+        # MEASUREMENT VALUES
+        y = np.subtract(z[j], np.dot(H, x))
+        K = np.dot( P, H.transpose()) / (np.dot(np.dot(H, P), H.transpose()) + R)
+
+        # UPDATE X AND P
+        for ii in range(0,3):
+            x[ii] = x[ii] + y*K[ii]
+
+        P = np.dot(np.subtract(1, np.dot(K,H)), P)
+        X = np.hstack((X, x))
+
+        return x, P, K, P, X
+
+
     def resetKalman(self, z, index, X=None):
         """
         Todo: Add documentation
         """
-        A = np.array([  [1, self.dT, 0.5 * self.dT**2],
-                        [0, 1, self.dT],
+        A = np.array([  [1, s.f_sampling, 0.5 * s.f_sampling**2],
+                        [0, 1, s.f_sampling],
                         [0, 0, 1]])                 # State transition matrix
         P = np.array([  [0, 0, 0],
                         [0, 0, 0],
@@ -240,7 +218,7 @@ class DataProcess(object):
 
         for i in range(len(gyro_data)):
             # setting for gyro Kalman
-            A = np.array([  [1, self.dT],     # angle
+            A = np.array([  [1, s.f_sampling],     # angle
                             [0, 1]])    # angular v     # State transition matrix
             P = np.array([  [0, 0],
                             [0, 10]])                # State covariance matrix
@@ -308,20 +286,20 @@ class DataProcess(object):
                         [experiment][angle=0 (degrees), angular velocity = 1][timestamp])
 
         =OUTPUT=
-            self.horCompo    6x1024 array with:
+            self.horComp    6x1024 array with:
                             [experiment][timestamp]
         """
 
         # init list with horizontal components
-        self.acc_fixed_coord = np.zeros((3,1))  #! Why is this in self? Does another function need it?
+        acc_fixed_coord = np.zeros((3,1))  #! Why is this in self? Does another function need it?
         rotation_matrix = np.zeros((3,3))       #! Not sure if we need this initialisation step
         
         for i in range(len(angle)): #experiments
 
-            #takes one row of self.accZ (one experiment)
-            acc_sensor_coord = np.array(    [self.accX[i],
-                                            self.accY[i],
-                                            self.accZ[i]])
+            #takes one row of self.acc[2] (one experiment)
+            acc_sensor_coord = np.array(    [self.acc[0][i],
+                                            self.acc[1][i],
+                                            self.acc[2][i]])
 
             # all the values in one experiment
             for j in range(len(acc_sensor_coord[0])):
@@ -330,11 +308,11 @@ class DataProcess(object):
                 rotation_matrix = np.array([    [np.cos(angle[i][0][j]),    0,  -np.sin(angle[i][0][j])],
                                                 [0,                         1,     0],
                                                 [np.sin(angle[i][0][j]),    0,  np.cos(angle[i][0][j])]])
-                self.acc_fixed_coord = np.dot(rotation_matrix, acc_sensor_coord[:,[j]]) #np.cos(angle[i][0][j])) #[0]=angle, [1]=angular velocity
+                acc_fixed_coord = np.dot(rotation_matrix, acc_sensor_coord[:,[j]]) #np.cos(angle[i][0][j])) #[0]=angle, [1]=angular velocity
                 #! Self.acc_fixed_coord is being overwritten in every loop. Don't know if that is what you want?
             
             
-        return self.acc_fixed_coord #needs to be changed
+        return acc_fixed_coord #needs to be changed
     
     
     def emwaFilter(self,data,alpha):
@@ -342,13 +320,13 @@ class DataProcess(object):
         EMWA filter
         """
         #Initialization
-        self.emwaData.append(data[0])
+        emwaData = [data[0]]
 
         #Filtering
         for k in range(1, len(data)):
-            self.emwaData.append(alpha*self.emwaData[k-1]+(1-alpha)*data[k])
+            emwaData.append(alpha*self.emwaData[k-1]+(1-alpha)*data[k])
             
-        return self.emwaData
+        return emwaData
 
     def stepRegistration(self, combAcc):
         """
