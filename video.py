@@ -64,8 +64,8 @@ to = peaks[1][0]
 
 data_plot = DataPlot()
 plt.plot(all_csv_data[s.experiment]['time_a'], combAcc[s.experiment], label='combined acceleration')
-plt.plot(to, first_peak, 'ro')
-plt.xlim([to-2500,to+2500])
+plt.plot(to, first_peak, 'ro', markersize=11)
+plt.xlim([to-1500,to+1500])
 plt.legend()
 plt.savefig('Plt_img/img_0.png')
 plt.close()
@@ -81,8 +81,9 @@ for i in range(1,len(timestamps)):
     ind_t = find_nearest(all_csv_data[s.experiment]['time_a'],tg)
     time_data = all_csv_data[s.experiment]['time_a'][ind_t]
     plt.plot(all_csv_data[s.experiment]['time_a'], combAcc[s.experiment], label='combined acceleration')
-    plt.plot(time_data, combAcc[s.experiment][ind_t], 'ro')
-    plt.xlim([time_data-2500,time_data+2500])
+    plt.plot(time_data, combAcc[s.experiment][ind_t], 'ro', markersize=11)
+    plt.xlim([time_data-1500,time_data+1500])
+    plt.ylim([-5,100])
     plt.legend()
     plt.savefig('Plt_img/img_'+str(i)+'.png')
     plt.close()
