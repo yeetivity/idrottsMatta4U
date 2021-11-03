@@ -1,3 +1,4 @@
+from matplotlib.pyplot import step
 import numpy as np
 from settings import Settings as s
 
@@ -366,6 +367,7 @@ class DataProcess(object):
         minima = [[],[]]        # Array with minima
 
         T=[]
+        indices = []
 
         for i in range(len(combAcc)-W1-1):
             T.append(0)
@@ -384,6 +386,7 @@ class DataProcess(object):
             if ((combAcc[i] > combAcc[i+1]) and (combAcc[i] > combAcc[i-1]) and (combAcc[i] > TH_pk)):
                 maxima[0].append(combAcc[i])
                 maxima[1].append(self.time[i])
+                indices.append(i) 
         
         # 2. Single valley detection with temporal threshold constraint
         for i in range(1,len(combAcc)-1):
@@ -400,20 +403,21 @@ class DataProcess(object):
             elif (np.abs(t_i - t_n) >= TH_s):
                 Ki = K0 
 
+            #* Valid peak detection
+
             if ((minima[1][max(n,1)]-minima[1][max(n-1,0)]) < Ki):
                 index = minima[0].index(max([minima[0][max(n,1)],minima[0][max(n-1,0)]]))     # Determine the index of the smallest peak
                 minima[0].pop(index)                                         # Delete smallest peak
                 minima[1].pop(index)   
-
-            #* Valid peak detection
 
             n_max = find_nearest(np.asarray(maxima[1]),t_i)
             # 2. Single Peak Detection with temporal threshold constraint
             if ((maxima[1][max(n_max,1)]-maxima[1][max(n_max-1,0)]) < Ki):
                 index = maxima[0].index(min([maxima[0][max(n_max,1)],maxima[0][max(n_max-1,0)]]))     # Determine the index of the smallest peak
                 maxima[0].pop(index)                                            # Delete smallest peak
-                maxima[1].pop(index)   
-
+                maxima[1].pop(index)
+                indices.pop(index)
+                  
         # Adaptive thresholds determination
 
         # Adaptive zero-velocity detection
@@ -421,5 +425,30 @@ class DataProcess(object):
         # Results
         print('Amount of peaks:', len(maxima[0]))
         print('Amount of valleys:', len(minima[0]))
-        return maxima, minima
+        return maxima, minima, indices
 
+    def dataOneStep(self, full_data, indices, step_number):
+        """
+        Cut full_data into a list corresponding to one step
+        """
+        
+        oneStepData = full_data[indices[step_number]:indices[step_number+1]]
+        oneStepTimelist = self.time[indices[step_number]:indices[step_number+1]]
+
+        return oneStepData,oneStepTimelist
+
+    def stepFrequency(self, peaks):
+        """
+        """
+        #Average Step Frequency
+        nb_peaks = len(peaks[0])
+        total_time = (peaks[1][-1]-peaks[1][0])/1000 #ms --> s
+        avgStepFreq = nb_peaks / total_time #Number of step / sec
+
+        #Step Frequency for each step
+        stepFreq = []
+        for i in range (len(peaks[0])-1):
+            timeOneStep = (peaks[1][i+1]-peaks[1][i])/1000 #ms --> s
+            stepFreq.append(1/timeOneStep)
+
+        return avgStepFreq, stepFreq

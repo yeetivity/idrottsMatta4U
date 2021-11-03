@@ -2,6 +2,7 @@
 Processing IMU data and visualising sprint data
 """
 
+from matplotlib.pyplot import step
 import numpy as np
 import time as t
 import matplotlib
@@ -41,6 +42,13 @@ gyroKalDataZ = processed_data.complexKalmanFilterGyro(processed_data.gyroZ, proc
 
 horCompo = processed_data.horizontalComponent(gyroKalDataX) # Horizontal component of acceleration
 
+# Data for one step
+oneStepCombAcc, oneStepCombAccTimelist = processed_data.dataOneStep(combAcc[s.experiment],indices,5)
+oneStepXAcc, oneStepXAccTimelist = processed_data.dataOneStep(data[s.experiment]['accX'],indices,5)
+
+# Step Frequency
+avgStepFreq, stepFreq = processed_data.stepFrequency(peaks)
+
 """
 ------------------------------PLOTTING DATA ------------------------------
 """
@@ -79,7 +87,19 @@ HorAcc = data_plot.plot1by1(data[s.experiment]['time_a'], horCompo[s.experiment]
 data_plot.show_plot(HorAcc, x_lim=[0,20000], y_lim=[-10, 30],
                     y_label='magnitude', x_label='time', title='Horizontal acceleration', legend=True)
 
+# Plot one step
+oneStepPlot = data_plot.plot1by1(oneStepCombAccTimelist, oneStepCombAcc, lab='Combined acceleration', cnr=6)
+oneStepPlot = data_plot.plot1by1(oneStepXAccTimelist, oneStepXAcc, lab='X acceleration', figure=oneStepPlot)
+data_plot.show_plot(oneStepPlot,
+                    y_label='magnitude', x_label='time', title='Combined Acceleration on one step', legend=True)
 
+# Plot Step Frequency
+nbStepList = [k for k in range (len(peaks[0])-1)]
+avgStepFreqList = [avgStepFreq for k in range (len(peaks[0])-1)]
+stepFreqPlot = data_plot.plot1by1(nbStepList, avgStepFreqList, lab='Average Step Frequency')
+stepFreqPlot = data_plot.plot1by1(nbStepList, stepFreq, lab='Step Frequency', figure=stepFreqPlot, cnr=4, mnr=1, points=True)
+data_plot.show_plot(stepFreqPlot,
+                    y_label='Step Frequency (Steps/sec)', x_label='Step number', title='Step Frequency for each step', legend=True)
 """
 ------------------------------CODE ENDING ------------------------------
 """
