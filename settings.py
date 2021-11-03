@@ -4,7 +4,7 @@ class Settings(object):
     """
 
     #Run settings
-    experiment = 9
+    experiment = 2
 
     #Plot settings
     padding = 5
@@ -12,4 +12,6 @@ class Settings(object):
     #Physical settings
     gravity = 9.81
 
+    #IMU settings
+    samplingfreq = 1/52
     
