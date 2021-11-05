@@ -182,7 +182,7 @@ class DataProcess(object):
 
         # Compute step frequency for individual steps
         stepFreq = []
-        for i in range(len(peaks[0]-1)):
+        for i in range(len(peaks[0])-1):
             timeOneStep = (peaks[1][i+1] - peaks[1][i]) / 1000
             stepFreq.append(1 / timeOneStep)
 

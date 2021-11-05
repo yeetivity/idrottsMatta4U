@@ -101,15 +101,15 @@ ssPlot = Data_plot.plot1by1(ss_comb_acc_time, ss_comb_acc, lab='Combined acceler
 Data_plot.show_plot(ssPlot, 'magnitude', 'time', 'Combined accelerations for one step', legend=True)
 
 # Create figure with accelerations, velocities and positions for one step
-ss_combPlot = Data_plot.plot3by1(   xdata1=timestamps, ydata1=pos_ss, lab1='position',
-                                    xdata2=timestamps, ydata2=vel_ss, lab2='velocity',
-                                    xdata3=timestamps, ydata3=acc_ss, lab3='acceleration')
+ss_combPlot = Data_plot.plot3by1(   xdata1=ss_comb_acc_time, ydata1=pos_ss, lab1='position',
+                                    xdata2=ss_comb_acc_time, ydata2=vel_ss, lab2='velocity',
+                                    xdata3=ss_comb_acc_time, ydata3=acc_ss, lab3='acceleration')
 
 # Plot figure with accelerations, velocities and positions
-Data_plot.show_plot(combPlot, y_label='', x_label='time [s]', title='Processed single step accelerations', legend=True)
+Data_plot.show_plot(ss_combPlot, y_label='', x_label='time [s]', title='Processed single step accelerations', legend=True)
 
 # Plot step frequency
-nbStepList = [k for k in range (len(peaks[0]-1))]
+nbStepList = [k for k in range (len(peaks[0])-1)]
 avgStepFreqList = [f_step_avg for k in range (len(peaks[0])-1)]
 fPlot = Data_plot.plot1by1(nbStepList, avgStepFreqList, lab='Average Step Frequency')
 fPlot = Data_plot.plot1by1(nbStepList, f_sstep, lab='Step Frequency', figure=fPlot, cnr=4, mnr=1, points=True )
