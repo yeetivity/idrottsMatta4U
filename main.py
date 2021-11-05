@@ -53,6 +53,14 @@ pos_ML, vel_ML, acc_ML = kf_mediolateral.kalmanFilter(reset_times=peaks)
 pos_AP, vel_AP, acc_AP = kf_anterioposterior.kalmanFilter(reset_times=peaks)
 pos_vert, vel_vert, acc_vert = kf_vertical.kalmanFilter(reset_times=peaks)
 
+# Compute accelerations, velocity and position for one step
+ss_comb_acc, ss_comb_acc_time = Data.dataOneStep(comb_acc, indices, step_number=5)
+kf_ss_comb_acc = kf(ss_comb_acc, Type='Acc')
+pos_ss, vel_ss, acc_ss = kf_ss_comb_acc.kalmanFilter(indices[5:7])
+
+# Compute step frequencies
+f_step_avg, f_sstep = Data.stepFrequency(peaks)
+
 """
 ------------------------------PLOTTING DATA ------------------------------
 """
@@ -87,6 +95,25 @@ combPlot = Data_plot.plot3by1(  xdata1=timestamps, ydata1=pos_ML, lab1='position
 # Plot figure with accelerations, velocities and positions
 Data_plot.show_plot(combPlot, y_label='', x_label='time [ms]', title='Processed AP accelerations', legend=True)
 
+
+# Create figure for one step
+ssPlot = Data_plot.plot1by1(ss_comb_acc_time, ss_comb_acc, lab='Combined acceleration', cnr=6)
+Data_plot.show_plot(ssPlot, 'magnitude', 'time', 'Combined accelerations for one step', legend=True)
+
+# Create figure with accelerations, velocities and positions for one step
+ss_combPlot = Data_plot.plot3by1(   xdata1=ss_comb_acc_time, ydata1=pos_ss, lab1='position',
+                                    xdata2=ss_comb_acc_time, ydata2=vel_ss, lab2='velocity',
+                                    xdata3=ss_comb_acc_time, ydata3=acc_ss, lab3='acceleration')
+
+# Plot figure with accelerations, velocities and positions
+Data_plot.show_plot(ss_combPlot, y_label='', x_label='time [s]', title='Processed single step accelerations', legend=True)
+
+# Plot step frequency
+nbStepList = [k for k in range (len(peaks[0])-1)]
+avgStepFreqList = [f_step_avg for k in range (len(peaks[0])-1)]
+fPlot = Data_plot.plot1by1(nbStepList, avgStepFreqList, lab='Average Step Frequency')
+fPlot = Data_plot.plot1by1(nbStepList, f_sstep, lab='Step Frequency', figure=fPlot, cnr=4, mnr=1, points=True )
+Data_plot.show_plot(fPlot, 'Step Frequency (steps/s)', 'Step Number', 'Step Frequency for Individual Steps', legend=True)
 """
 ------------------------------CODE ENDING ------------------------------
 """
