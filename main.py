@@ -45,6 +45,7 @@ horCompo = processed_data.horizontalComponent(gyroKalDataX) # Horizontal compone
 # Data for one step
 oneStepCombAcc, oneStepCombAccTimelist = processed_data.dataOneStep(combAcc[s.experiment],indices,5)
 oneStepXAcc, oneStepXAccTimelist = processed_data.dataOneStep(data[s.experiment]['accX'],indices,5)
+oneStepKalData = processed_data.complexKalmanFilter(oneStepCombAcc,indices[5:7])
 
 # Step Frequency
 avgStepFreq, stepFreq = processed_data.stepFrequency(peaks)
@@ -92,6 +93,14 @@ oneStepPlot = data_plot.plot1by1(oneStepCombAccTimelist, oneStepCombAcc, lab='Co
 oneStepPlot = data_plot.plot1by1(oneStepXAccTimelist, oneStepXAcc, lab='X acceleration', figure=oneStepPlot)
 data_plot.show_plot(oneStepPlot,
                     y_label='magnitude', x_label='time', title='Combined Acceleration on one step', legend=True)
+
+# Plot complex kalman filtered data for ONE STEP
+oneStepKalComplex = data_plot.plot3by1(oneStepCombAccTimelist, oneStepKalData[0], 
+                                    oneStepCombAccTimelist, oneStepKalData[1],
+                                    oneStepCombAccTimelist, oneStepKalData[2],
+                                    lab1= 'position', lab2 ='speed', lab3='acceleration')
+data_plot.show_plot(oneStepKalComplex,
+                    y_label='magnitude', x_label='time', title='Position, speed and acceleration', legend=True)
 
 # Plot Step Frequency
 nbStepList = [k for k in range (len(peaks[0])-1)]
