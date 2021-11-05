@@ -12,25 +12,6 @@ class DataProcess(object):
         self.time = storeddata['time_a'] 
 
         self.combAcc = []
-        
-        # self.pitch = np.zeros((len(self.storeddata), len(self.time)))
-        # self.roll = np.zeros((len(self.storeddata), len(self.time)))
-        # self.yaw = np.zeros((len(self.storeddata), len(self.time)))
-        # self.accX_arr = np.zeros((len(self.storeddata), len(self.time)))       #! Can't we make everything an array?
-        # self.accY_arr = np.zeros((len(self.storeddata), len(self.time)))
-        # self.accZ_arr = np.zeros((len(self.storeddata), len(self.time)))
-
-        # # Check if we want this in initialisation. 
-        # for i in range(len(self.storeddata)):
-        #     for j in range(len(self.acc[0][i])):
-        #         self.accX_arr[i][j] = self.acc[0][i][j]
-        #         self.accY_arr[i][j] = self.acc[1][i][j]
-        #         self.accZ_arr[i][j] = self.acc[2][i][j]
-
-        #         # Todo put in kalmanfilter class
-        #         self.pitch[i][j] = np.tan(self.accX_arr[i][j]/ (np.sqrt(self.accY_arr[i][j]**2 + self.accZ_arr[i][j]**2)))
-        #         self.roll[i][j] = np.tan(self.accY_arr[i][j]/ (np.sqrt(self.accX_arr[i][j]**2 + self.accZ_arr[i][j]**2)))
-        #         self.yaw[i][j] = np.tan((np.sqrt(self.accX_arr[i][j]**2 + self.accY_arr[i][j]**2))/self.accZ_arr[i][j])
         return
 
     
