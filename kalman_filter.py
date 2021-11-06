@@ -25,7 +25,7 @@ class KalmanFilter(object):
         z = np.array(self.control_data[2])
 
         if direction == 'x':
-            pitch = np.tan(x / (np.sqrt(y**2 + z**2)))
+            pitch = np.tan(x / (np.sqrt(y**2 + z**2))) #rotation around x-axis
             return pitch
         elif direction == 'y':
             roll = np.tan(y/ (np.sqrt(x**2 + z**2)))

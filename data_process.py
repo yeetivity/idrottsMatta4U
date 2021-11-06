@@ -137,7 +137,7 @@ class DataProcess(object):
         coor_fxd_acc = [[],[],[]]
         # We need angles, we compute these by kalmanfiltering the gyro data
         AnglesX = kf(self.gyro[0], self.acc, Type='Gyro')
-        angle = AnglesX.kalmanFilter(direction='x')
+        angle = AnglesX.kalmanFilter(direction='y')
 
         #! Since we already have an accX, accY, accZ as output, do we even need this?
         AnglesY = kf(self.gyro[1], self.acc, Type='Gyro')
