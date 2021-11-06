@@ -49,9 +49,9 @@ kf_vertical = kf(vector_data[2], Type='Acc')
 
 # Compute the kalmanfiltered vectors
 pos, vel, acc = kf_comb_acc.kalmanFilter(reset_times=indices)
-pos_ML, vel_ML, acc_ML = kf_mediolateral.kalmanFilter(reset_times=peaks)
+pos_ML, vel_ML, acc_ML = kf_mediolateral.kalmanFilter(reset_times=peaks)        
 pos_AP, vel_AP, acc_AP = kf_anterioposterior.kalmanFilter(reset_times=peaks)
-pos_vert, vel_vert, acc_vert = kf_vertical.kalmanFilter(reset_times=peaks)
+pos_vert, vel_vert, acc_vert = kf_vertical.kalmanFilter(reset_times=peaks)      #! ML
 
 # Compute accelerations, velocity and position for one step
 ss_comb_acc, ss_comb_acc_time = Data.dataOneStep(comb_acc, indices, step_number=5)
@@ -88,12 +88,12 @@ combPlot = Data_plot.plot3by1(  xdata1=timestamps, ydata1=pos, lab1='position',
 Data_plot.show_plot(combPlot, y_label='', x_label='time [ms]', title='Processed combined accelerations', legend=True)
 
 # Create figure with accelerations, velocities and positions found from ML vector #! Under Construction
-combPlot = Data_plot.plot3by1(  xdata1=timestamps, ydata1=pos_ML, lab1='position',
+vectorPlot_ML = Data_plot.plot3by1(  xdata1=timestamps, ydata1=pos_ML, lab1='position',
                                 xdata2=timestamps, ydata2=vel_ML, lab2='velocity',
                                 xdata3=timestamps, ydata3=acc_ML, lab3='acceleration')
 
 # Plot figure with accelerations, velocities and positions
-Data_plot.show_plot(combPlot, y_label='', x_label='time [ms]', title='Processed AP accelerations', legend=True)
+Data_plot.show_plot(vectorPlot_ML, y_label='', x_label='time [ms]', title='Processed ML accelerations', legend=True)
 
 
 # Create figure for one step
