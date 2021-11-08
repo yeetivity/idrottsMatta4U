@@ -41,6 +41,12 @@ gyroKalDataZ = processed_data.complexKalmanFilterGyro(processed_data.gyroZ, proc
 
 horCompo = processed_data.horizontalComponent(gyroKalDataX) # Horizontal component of acceleration
 
+gct1 = processed_data.GCT1(peaks, valleys)
+print(gct1)
+
+sw=processed_data.SW()
+
+
 """
 ------------------------------PLOTTING DATA ------------------------------
 """
@@ -78,8 +84,15 @@ data_plot.show_plot(emwaPlot, x_lim=[0,20000], y_lim=[-10, 30],
 HorAcc = data_plot.plot1by1(data[s.experiment]['time_a'], horCompo[s.experiment], lab='horizontal component of acceleration')
 data_plot.show_plot(HorAcc, x_lim=[0,20000], y_lim=[-10, 30],
                     y_label='magnitude', x_label='time', title='Horizontal acceleration', legend=True)
+#plot max
+maxplot = data_plot.plot1by1(data[s.experiment]['time_a'], data[s.experiment]['accX'], lab='AccX')
+maxplot = data_plot.plot1by1(data[s.experiment]['time_a'], data[s.experiment]['accY'], lab='AccY', figure=maxplot, cnr=6)
+maxplot = data_plot.plot1by1(data[s.experiment]['time_a'], data[s.experiment]['accZ'], lab='AccZ', figure=maxplot, cnr=4)
+maxplot = data_plot.plot1by1(data[s.experiment]['time_a'], emwaData, lab='EMWA combined acceleration', figure=maxplot, cnr=2)
+data_plot.show_plot(maxplot, x_lim=[0,20000], y_lim=[-10, 30],
+                    y_label='magnitude', x_label='time', title='max check', legend=True)
 
-
+#maxplot2 = data_plot.plot1by1(data[s.experiment]['time_a'], sw, lab='AccX')
 """
 ------------------------------CODE ENDING ------------------------------
 """

@@ -410,3 +410,47 @@ class DataProcess(object):
         print('Amount of valleys:', len(minima[0]))
         return maxima, minima, indices
 
+
+    
+
+
+
+
+    def GCT1(self,maxima,minima):
+        #init
+        found = False
+        i=0
+        gct = []
+        #make a list of maxima and minima pairs (only their timestamps)
+        #first maximum is just reference so it starts at index 1
+        # sync
+        minStart = 0
+        maxStart = 1
+        totTime = len(maxima[0]) - 1
+
+        while not found:
+            if (abs(maxima[1][maxStart]-minima[1][minStart])<250):
+                found = True
+            else :
+                minStart += 1
+
+        # select synced arrays
+        timepairs = [maxima[1][1:], minima[1][minStart:minStart + totTime]]
+        #calculate GCT
+        for a,b in zip(*timepairs):
+            gct.append(abs(a - b))
+        return gct
+
+    def SW(self):
+        peaks=[]
+
+
+        for i in range(1,len(self.storeddata)-8):
+            peaks[i] = abs(self.storeddata[i]['accX']-self.storeddata[i+1]['accX'])+abs(self.storeddata[i]['accX']-self.storeddata[i+2]['accX'])+abs(self.storeddata[i]['accX']-self.storeddata[i+3]['accX'])+abs(self.storeddata[i]['accX']-self.storeddata[i+4]['accX'])+abs(self.storeddata[i]['accX']-self.storeddata[i+5]['accX'])
+        
+        print(peaks)
+        return peaks
+
+
+
+
