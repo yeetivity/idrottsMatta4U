@@ -19,25 +19,32 @@ class KalmanFilter(object):
         return
 
     def computeAttitudes(self, direction='x'):
+        """
+        =OUTPUT=
+        pitch (rotation around x-axis), roll (rotation around y-axis) or yaw (rotation around z-axis)
+        """
         # Todo : see how this should function
         x = np.array(self.control_data[0])
         y = np.array(self.control_data[1])
         z = np.array(self.control_data[2])
 
         if direction == 'x':
-            pitch = np.tan(x / (np.sqrt(y**2 + z**2))) #rotation around x-axis
+            pitch = np.tan(x / (np.sqrt(y**2 + z**2)))  
             return pitch
         elif direction == 'y':
-            roll = np.tan(y/ (np.sqrt(x**2 + z**2)))
+            roll = np.tan(y/ (np.sqrt(x**2 + z**2)))   
             return roll
         elif direction == 'z':
-            yaw = np.tan((np.sqrt(x**2 + y**2))/z)
+            yaw = np.tan((np.sqrt(x**2 + y**2))/z)    
             return yaw
 
     def kalmanFilter(self, reset_times=None, direction='x'):
         """
         =OUTPUT=
-        X ->    If the filter is done for gyro data the shape is [2,x] 
+        X ->    If the filter is done for acceleration data
+                with [0] is position, [1] velocity, [2] acceleration
+        
+                If the filter is done for gyro data the shape is [2,x] 
                 with [0] is angle, [1] angular velocity
         """
         #* Initialisation

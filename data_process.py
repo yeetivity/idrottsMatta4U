@@ -115,6 +115,8 @@ class DataProcess(object):
     def emwaFilter(self,data,alpha):
         """
         EMWA filter
+        =INPUT=     data: data to filter
+                    alpha: filter value
         """
         #Initialization
         emwaData = [data[0]]
@@ -130,30 +132,29 @@ class DataProcess(object):
         """
         Compute the horizontal component of acceleration (or velocity) #Todo: check if right axes are used.
         =INPUT=
-        =OUTPUT=
-        self.horComp    array with: [experiment][timestamp]
+        =OUTPUT=    [[AP], [ML], [vert]]
         """
         # Initialise a coor_fxd_acc
-        coor_fxd_acc = [[],[],[]]
+        coor_fxd_acc = [[],[],[]]       # [[AP], [ML], [vert]]
         # We need angles, we compute these by kalmanfiltering the gyro data
-        AnglesX = kf(self.gyro[0], self.acc, Type='Gyro')
-        angle = AnglesX.kalmanFilter(direction='y')
-
-        #! Since we already have an accX, accY, accZ as output, do we even need this?
         AnglesY = kf(self.gyro[1], self.acc, Type='Gyro')
-        AnglesZ = kf(self.gyro[2], self.acc, Type='Gyro')
+        angle = AnglesY.kalmanFilter(direction='y')[0]  #takes only angles, not velocity
+
+        #! Since we already have an accX, accY, accZ as output, do we even need this? -> Answer: probably not, if we assume no rotation laterally and vertically
+        #AnglesX = kf(self.gyro[0], self.acc, Type='Gyro')
+        #AnglesZ = kf(self.gyro[2], self.acc, Type='Gyro')
 
         #takes one column of self.acc for every experiment
-        coor_lcl_acc = np.array(    [self.acc[0],
+        coor_lcl_acc = np.array(    [self.acc[0],   
                                     self.acc[1],
-                                    self.acc[2]])
+                                    self.acc[2]])   #[[x], [y], [z]]
 
         # all the values in one experiment
         for j in range(len(coor_lcl_acc[0])):
             # Todo: check if kalmangyro outputs radians
-            rotation_matrix = np.array([    [np.cos(angle[0][j]),    0,  -np.sin(angle[0][j])],
+            rotation_matrix = np.array([    [np.cos(angle[j]),    0,  -np.sin(angle[j])],
                                             [0,                         1,     0],
-                                            [np.sin(angle[0][j]),    0,  np.cos(angle[0][j])]])
+                                            [np.sin(angle[j]),    0,  np.cos(angle[j])]])
             array = (np.dot(rotation_matrix, coor_lcl_acc[:,[j]]))
             for i in range(3):
                 coor_fxd_acc[i].append(array[i][0])
