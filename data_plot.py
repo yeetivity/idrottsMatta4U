@@ -58,7 +58,7 @@ class DataPlot(object):
 
 
     def plot1by2(   self, xdata1, ydata1, xdata2=None, ydata2=None, lab1 = '', lab2 = '',
-                    figure=None, subplotnumber=None, linenumber1=0, linenumber2=1):
+                    figure=None, subplotnumber=None, linenumber1=0, linenumber2=1, points=False):
         """
         =INPUT=
         xdata       data that should be plotted on x axis
@@ -88,12 +88,18 @@ class DataPlot(object):
             figure.axes[subplotnumber].plot(xdata1, ydata1, color=self.colors[linenumber1], linestyle='-', label = lab1)           # 1 Data in chosen plot
         
         elif (subplotnumber == None):
-            figure.axes[0].plot(xdata1, ydata1, color=self.colors[0], linestyle= '-', label = lab1)
-            figure.axes[1].plot(xdata2, ydata2, color=self.colors[7], linestyle= '-', label = lab2)                                # 2 Data in 2 plots
+            figure.axes[0].plot(xdata1, ydata1, color=self.colors[linenumber1], linestyle= '-', label = lab1)
+            figure.axes[1].plot(xdata2, ydata2, color=self.colors[linenumber2], linestyle= '-', label = lab2)                                # 2 Data in 2 plots
         
         elif (subplotnumber != None):
-            figure.axes[subplotnumber].plot(xdata1, ydata1, color=self.colors[linenumber1], linestyle= '-', label = lab1)
-            figure.axes[subplotnumber].plot(xdata2, ydata2, color=self.colors[linenumber2], linestyle= '-', label = lab2)          # 2 Data in 1 plot
+            if points is False:
+                figure.axes[subplotnumber].plot(xdata1, ydata1, color=self.colors[linenumber1], linestyle= '--', label = lab1)
+                figure.axes[subplotnumber].plot(xdata2, ydata2, color=self.colors[linenumber2], linestyle= '--', label = lab2)          # 2 Data in 1 plot
+            if points is True:
+                figure.axes[subplotnumber].plot(xdata1, ydata1, marker=self.marker[linenumber1%5], linestyle='None',
+                markersize=8, markerfacecolor=(1,1,1,0), markeredgecolor=self.colors[linenumber1%6], label = lab1)
+                figure.axes[subplotnumber].plot(xdata2, ydata2, marker=self.marker[linenumber2], linestyle='None',
+                markersize=8, markerfacecolor=(1,1,1,0), markeredgecolor=self.colors[linenumber2%6], label = lab2)
         
         else:
             pass
@@ -203,7 +209,9 @@ class DataPlot(object):
             ax3 = figure.add_subplot(3, 1, 3)
 
         else:
-            pass
+            ax1 = figure.axes[0]
+            ax2 = figure.axes[1]
+            ax3 = figure.axes[2]
         
         # Plotting the data
         # 1 Data per 1 subplot
