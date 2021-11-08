@@ -1,3 +1,4 @@
+from sys import intern
 import numpy as np
 from settings import Settings as s
 
@@ -441,15 +442,37 @@ class DataProcess(object):
             gct.append(abs(a - b))
         return gct
 
-    def SW(self):
-        peaks=[]
 
+    """
+    Sliding window signal on selected data
+    
 
-        for i in range(1,len(self.storeddata)-8):
-            peaks[i] = abs(self.storeddata[i]['accX']-self.storeddata[i+1]['accX'])+abs(self.storeddata[i]['accX']-self.storeddata[i+2]['accX'])+abs(self.storeddata[i]['accX']-self.storeddata[i+3]['accX'])+abs(self.storeddata[i]['accX']-self.storeddata[i+4]['accX'])+abs(self.storeddata[i]['accX']-self.storeddata[i+5]['accX'])
-        
-        print(peaks)
-        return peaks
+    """
+    def SW(self, width: int, signal_type: str, experiment_n):
+        if signal_type == 'x':
+            signal = self.accX
+        elif signal_type == 'y':
+            signal = self.accY
+        elif signal_type == 'z':
+            signal = self.accZ
+        elif signal_type == 'comb':
+            signal = self.combAcc
+        else:
+            print('only x, y, z or comb is allowed')
+        signal = signal[experiment_n]
+
+        noise_signal = np.zeros(len(signal))
+
+        signal_arr = np.array(signal + [0]*width)
+        print(f'size: {signal_arr.size}')
+
+        for i in range(len(signal)):# len - width -1 + width -1
+            
+            noise_signal[i] = np.sum(np.abs(signal_arr[i] - signal_arr[np.arange(i+1, i+width)]))
+            
+        return noise_signal / width
+            
+
 
 
 
