@@ -468,9 +468,10 @@ class DataProcess(object):
 
         for i in range(len(signal)):# len - width -1 + width -1
             
-            noise_signal[i] = np.sum(np.abs(signal_arr[i] - signal_arr[np.arange(i+1, i+width)]))
+            # noise_signal[i] = np.sum(np.abs(signal_arr[i] - signal_arr[np.arange(i+1, i+width)]))
+            noise_signal[i] = np.abs(signal_arr[i] - signal_arr[i + width - 1])
             
-        return noise_signal / width
+        return noise_signal
             
 
 
