@@ -20,7 +20,7 @@ start_time = t.time()
 """
 # Initialise the datareading class
 Data = DataRead()
-rawdata = Data.read(s.folderpath, filetype=s.filetype) # array [experimentnr.][acc/gyro/timestamp][timestamp.data]
+rawdata = Data.read(s.folderpath, filetype=s.filetype, subfolders=s.subfolders) # array [experimentnr.][acc/gyro/timestamp][timestamp.data]
 timestamps = rawdata[s.experiment]['time_a']
 
 """
