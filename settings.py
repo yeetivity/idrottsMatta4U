@@ -4,8 +4,9 @@ class Settings(object):
     """
 
     # Readout settings
-    folderpath = 'CSV_DATA2'
+    folderpath = 'VALIDATION_SET'
     filetype = 'csv'
+    subfolders = False
     experiment = 2
 
     # Plot settings
