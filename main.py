@@ -11,7 +11,7 @@ matplotlib.use("Qt5Agg")
 from settings import Settings as s
 from data_read import DataRead
 from data_plot import DataPlot
-from data_process import DataProcess
+from data_process import DataProcess, find_nearest, resetTimeList
 from kalman_filter import KalmanFilter as kf
 
 start_time = t.time()
@@ -61,26 +61,26 @@ list_pos_ss = []
 list_vel_ss = []
 list_acc_ss = []
 
-for i in range(len(indices)-1):
-    ss_comb_acc, ss_comb_acc_time = Data.dataOneStep(comb_acc, indices, step_number=i)
-    list_ss_comb_acc.append(ss_comb_acc)
+# for i in range(len(indices)-1):
+#     ss_comb_acc, ss_comb_acc_time = Data.dataOneStep(comb_acc, indices, step_number=i)
+#     list_ss_comb_acc.append(ss_comb_acc)
     
-    reset_ss_comb_acc_time = Data.resetTimeList(ss_comb_acc_time)
-    list_ss_comb_acc_time.append(reset_ss_comb_acc_time)
+#     reset_ss_comb_acc_time = resetTimeList(ss_comb_acc_time)
+#     list_ss_comb_acc_time.append(reset_ss_comb_acc_time)
 
-for i in range (len(list_ss_comb_acc)):
-    if i == (len(list_ss_comb_acc)-1):
-        kf_ss_comb_acc = kf(list_ss_comb_acc[i], Type='Acc')
-        pos_ss, vel_ss, acc_ss = kf_ss_comb_acc.kalmanFilter(indices[-2:])
-        list_pos_ss.append(pos_ss)
-        list_vel_ss.append(vel_ss)
-        list_acc_ss.append(acc_ss)
-    else :    
-        kf_ss_comb_acc = kf(list_ss_comb_acc[i], Type='Acc')
-        pos_ss, vel_ss, acc_ss = kf_ss_comb_acc.kalmanFilter(indices[i:i+2])
-        list_pos_ss.append(pos_ss)
-        list_vel_ss.append(vel_ss)
-        list_acc_ss.append(acc_ss)
+# for i in range (len(list_ss_comb_acc)):
+#     if i == (len(list_ss_comb_acc)-1):
+#         kf_ss_comb_acc = kf(list_ss_comb_acc[i], Type='Acc')
+#         pos_ss, vel_ss, acc_ss = kf_ss_comb_acc.kalmanFilter(indices[-2:])
+#         list_pos_ss.append(pos_ss)
+#         list_vel_ss.append(vel_ss)
+#         list_acc_ss.append(acc_ss)
+#     else :    
+#         kf_ss_comb_acc = kf(list_ss_comb_acc[i], Type='Acc')
+#         pos_ss, vel_ss, acc_ss = kf_ss_comb_acc.kalmanFilter(indices[i:i+2])
+#         list_pos_ss.append(pos_ss)
+#         list_vel_ss.append(vel_ss)
+#         list_acc_ss.append(acc_ss)
 
 
 # Compute step frequencies

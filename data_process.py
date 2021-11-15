@@ -7,6 +7,14 @@ def find_nearest(array,value):
     idx = (np.abs(array - value)).argmin()
     return idx
 
+def resetTimeList(time_list):
+    first_time = time_list[0]
+
+    for i in range(len(time_list)):
+        time_list[i]=time_list[i]-first_time
+
+    return time_list
+
 class DataProcess(object):
     """
     
@@ -14,7 +22,7 @@ class DataProcess(object):
     def __init__(self, storeddata): #TODO make everything that can be array an array
         self.gyro = [storeddata['gyrX'],storeddata['gyrY'],storeddata['gyrZ']]
         self.acc = [storeddata['accX'],storeddata['accY'],storeddata['accZ']]
-        self.time = storeddata['time_a'] 
+        self.time = storeddata['time_a']
 
         self.combAcc = []
         return
@@ -182,6 +190,7 @@ class DataProcess(object):
         """
 
         oneStepData = full_data[indices[step_number]:indices[step_number+1]]
+
         oneStepTimeList = self.time[indices[step_number]:indices[step_number+1]]
         return oneStepData, oneStepTimeList
 
@@ -202,12 +211,5 @@ class DataProcess(object):
 
         return avgStepFreq, stepFreq 
         
-    def resetTimeList(self, time_list):
-        first_time = time_list[0]
-
-        for i in range(len(time_list)):
-            time_list[i]=time_list[i]-first_time
-
-        return time_list
 
 
