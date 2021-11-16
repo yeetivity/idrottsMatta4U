@@ -10,7 +10,8 @@ matplotlib.use("Qt5Agg")
 from settings import Settings as s
 from data_read import DataRead
 from data_plot import DataPlot
-from data_process import DataProcess
+from data_process import DataProcess, gct_from_peaks
+from data_process import gct_peaks
 
 start_time = t.time()
 
@@ -41,12 +42,14 @@ gyroKalDataZ = processed_data.complexKalmanFilterGyro(processed_data.gyroZ, proc
 
 horCompo = processed_data.horizontalComponent(gyroKalDataX) # Horizontal component of acceleration
 
-gct1 = processed_data.GCT1(peaks, valleys)
-print(gct1)
+
+
 
 sw_width = 50
 sw_type = 'x'
 noise_signal = processed_data.SW(sw_width, sw_type, experiment_n=s.experiment)
+peaks_idx = gct_peaks(noise_signal)
+print(gct_from_peaks(peaks_idx, noise_signal, data[s.experiment]['time_a']))
 
 
 """
@@ -88,10 +91,12 @@ data_plot.show_plot(HorAcc, x_lim=[0,20000], y_lim=[-10, 30],
                     y_label='magnitude', x_label='time', title='Horizontal acceleration', legend=True)
 #plot max
 maxplot = data_plot.plot1by1(data[s.experiment]['time_a'], data[s.experiment]['accX'], lab='AccX')
-maxplot = data_plot.plot1by1(data[s.experiment]['time_a'], data[s.experiment]['accY'], lab='AccY', figure=maxplot, cnr=6)
-maxplot = data_plot.plot1by1(data[s.experiment]['time_a'], data[s.experiment]['accZ'], lab='AccZ', figure=maxplot, cnr=4)
-maxplot = data_plot.plot1by1(data[s.experiment]['time_a'], emwaData, lab='EMWA combined acceleration', figure=maxplot, cnr=2)
+# maxplot = data_plot.plot1by1(data[s.experiment]['time_a'], data[s.experiment]['accY'], lab='AccY', figure=maxplot, cnr=6)
+# maxplot = data_plot.plot1by1(data[s.experiment]['time_a'], data[s.experiment]['accZ'], lab='AccZ', figure=maxplot, cnr=4)
+# maxplot = data_plot.plot1by1(data[s.experiment]['time_a'], emwaData, lab='EMWA combined acceleration', figure=maxplot, cnr=2)
 maxplot = data_plot.plot1by1(data[s.experiment]['time_a'], noise_signal, lab=f'SW noise - {sw_width} {sw_type}', figure=maxplot, cnr=5)
+maxplot = data_plot.plot1by1(data[s.experiment]['time_a'][peaks_idx], noise_signal[peaks_idx], lab=f'peaks', figure=maxplot, cnr=2, points=True)
+
 data_plot.show_plot(maxplot, x_lim=[0,20000], y_lim=[-10, 30],
                     y_label='magnitude', x_label='time', title='max check', legend=True)
 
