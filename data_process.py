@@ -472,24 +472,32 @@ class DataProcess(object):
             
             noise_signal[i] = np.sum(np.abs(signal_arr[i] - signal_arr[np.arange(i+1, i+width)]))
             #noise_signal[i] = np.abs(signal_arr[i] - signal_arr[i + width - 1])
-            
-        return savitzky_golay(noise_signal, 81, 2)
+        
+        filtered_signal=savitzky_golay(noise_signal, 81, 2)
+        maximum = np.amax(filtered_signal)
+        return filtered_signal/maximum
 
-def gct_peaks(filtered_signal):
 
-    peaks_idx, _ = find_peaks(filtered_signal, distance=50, height=1200)
-    return peaks_idx
 
-def gct_from_peaks(peaks_idx, signal, time):
+def gct_peaks(filtered_signal,threshold=0.8):
 
-    if peaks_idx.size % 2 != 0:
-        peaks_idx = peaks_idx[:-1]
-    if not np.all(signal[peaks_idx[::2]] > signal[peaks_idx[1::2]]):
-        peaks_idx = peaks_idx[1:]
-        peaks_idx = peaks_idx[:-1]
-    assert(np.all(signal[peaks_idx[::2]] > signal[peaks_idx[1::2]]))
+    peaks_idx, _ = find_peaks(filtered_signal, distance=50, height=0.4)
+    final_peaks_idx = []
+    for i in range(peaks_idx.size-1):
+        if filtered_signal[peaks_idx[i]]>threshold:
+            final_peaks_idx.append(peaks_idx[i])
+            final_peaks_idx.append(peaks_idx[i+1])
 
-    return time[peaks_idx[np.arange(1, peaks_idx.size, step=2)]] - time[peaks_idx[np.arange(0, peaks_idx.size, step=2)]]
+    return final_peaks_idx
+
+def gct_from_peaks(peaks_idx: list, signal, time):
+    # if peaks_idx.size % 2 != 0:
+    #     peaks_idx = peaks_idx[:-1]
+    # if not np.all(signal[peaks_idx[::2]] > signal[peaks_idx[1::2]]):
+    #     peaks_idx = peaks_idx[1:]
+    #     peaks_idx = peaks_idx[:-1]
+    # assert(np.all(signal[peaks_idx[::2]] > signal[peaks_idx[1::2]]))
+    return time[peaks_idx[1::2]] - time[peaks_idx[::2]]
             
 
 
