@@ -3,15 +3,19 @@ class Settings(object):
     =NOTES=
     """
 
-    #Run settings
-    experiment = 1
+    # Readout settings
+    folderpath = 'VALIDATION_SET'
+    filetype = 'csv'
+    subfolders = False
+    experiment = 2
 
-    #Plot settings
+    # Plot settings
     padding = 5
     
-    #Physical settings
+    # Physical settings
     gravity = 9.81
 
-    #IMU settings
-    samplingfreq = 1/52
+    # IMU settings
+    f_sampling = 1/52
+
     

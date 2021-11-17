@@ -21,15 +21,20 @@ class DataRead():
         return 
 
 
-    def read(self, folderpath, filetype='csv'):
+    def read(self, folderpath, filetype='csv', subfolders=True):
         if (filetype == 'csv'):
-            p = sorted(glob.glob(folderpath + '/ACC' + "/*.csv"))
-            data_acc = self.load_csvs(p)
-            self.transform_csvformat(data_acc, type='acc')
+            if (subfolders is True):
+                p = sorted(glob.glob("DATA/"+ folderpath + '/ACC' + "/*.csv"))
+                data_acc = self.load_csvs(p)
+                self.transform_csvformat(data_acc, type='acc')
 
-            p = sorted(glob.glob(folderpath + '/GYRO' + "/*.csv"))
-            data_gyr = self.load_csvs(p)
-            data = self.transform_csvformat(data_gyr, type='gyro')
+                p = sorted(glob.glob("DATA/"+ folderpath + '/GYRO' + "/*.csv"))
+                data_gyr = self.load_csvs(p)
+                data = self.transform_csvformat(data_gyr, type='gyro')
+            else:
+                p = sorted(glob.glob("DATA/"+ folderpath + "/*.csv"))
+                data_comb = self.load_csvs(p) 
+                data = self.transform_csvformat(data_comb, type='comb')
 
         elif (filetype == 'json'):
             p = sorted(glob.glob(folderpath + "/*.json"))
@@ -97,13 +102,25 @@ class DataRead():
                         self.transdata[i]['accX'].append(float(data_container[i][ii][1]))
                         self.transdata[i]['accY'].append(float(data_container[i][ii][2]))
                         self.transdata[i]['accZ'].append(float(data_container[i][ii][3]))
-            else:                           # Fill in the gyro data
+            if (type == 'gyr'):             # Fill in the gyro data
                 for jj in range(len(data_container[i])):
                     if (jj != 0):
                         self.transdata[i]['time_g'].append(float(data_container[i][jj][0]))
                         self.transdata[i]['gyrX'].append(float(data_container[i][jj][1]))
                         self.transdata[i]['gyrY'].append(float(data_container[i][jj][2]))
                         self.transdata[i]['gyrZ'].append(float(data_container[i][jj][3]))
+            else:
+                self.transdata.append({'accX': [], 'accY': [], 'accZ': [], 'gyrX': [], 'gyrY': [], 'gyrZ': [], 'time_a': [], 'time_g': []})
+                for kk in range(len(data_container[i])):
+                    if (kk != 0):
+                        self.transdata[i]['time_g'].append(float(data_container[i][kk][0])) #There is only one time set in this format
+                        self.transdata[i]['time_a'].append(float(data_container[i][kk][0]))
+                        self.transdata[i]['accX'].append(float(data_container[i][kk][1]))
+                        self.transdata[i]['accY'].append(float(data_container[i][kk][2]))
+                        self.transdata[i]['accZ'].append(float(data_container[i][kk][3]))
+                        self.transdata[i]['gyrX'].append(float(data_container[i][kk][4]))
+                        self.transdata[i]['gyrY'].append(float(data_container[i][kk][5]))
+                        self.transdata[i]['gyrZ'].append(float(data_container[i][kk][6]))                                                
             
             # Time check
             if (self.transdata[i]['time_a'] == self.transdata[i]['time_g']):

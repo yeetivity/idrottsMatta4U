@@ -12,95 +12,137 @@ from data_read import DataRead
 from data_plot import DataPlot
 from data_process import DataProcess, gct_from_peaks
 from data_process import gct_peaks
+from kalman_filter import KalmanFilter as kf
 
 start_time = t.time()
 
 """
 ------------------------------LOADING DATA ------------------------------
 """
-folderpath = 'CSV_DATA2'
-Data = DataRead() # Initialise the datareading class
-data = Data.read(folderpath, filetype='csv')
+# Initialise the datareading class
+Data = DataRead()
+rawdata = Data.read(s.folderpath, filetype=s.filetype, subfolders=s.subfolders) # array [experimentnr.][acc/gyro/timestamp][timestamp.data]
+timestamps = rawdata[s.experiment]['time_a']
 
 """
 ------------------------------PROCESSING DATA ------------------------------
 """
-processed_data = DataProcess(data)
+# Initialise the data processing class - overwrite data reading class
+Data = DataProcess(rawdata[s.experiment])
 
-# Raw data processing
-combAcc = processed_data.combineAccelerations()                                  # Combine accelerations
-peaks, valleys, indices = processed_data.stepRegistration(combAcc[s.experiment]) # Find the peaks and valleys of the combined acceleration
+# Combine the x, y and z accelerations 
+comb_acc = Data.combineAccelerations()
 
-# Filtering
-emwaData = processed_data.emwaFilter(combAcc[s.experiment],0.85)    # Apply EMWA filter to combined accelerations and use alpha=0.85
-accKalData = processed_data.complexKalmanFilter(combAcc[s.experiment], indices)            # Apply kalman filter to combined acceleration
+# Register the steps in the combined acceleration
+peaks, valleys, indices = Data.stepRegistration()
 
-# Kalman filtered gyro data    
-gyroKalDataX = processed_data.complexKalmanFilterGyro(processed_data.gyroX, processed_data.kalGyroX, processed_data.pitch)
-gyroKalDataY = processed_data.complexKalmanFilterGyro(processed_data.gyroY, processed_data.kalGyroY, processed_data.roll)
-gyroKalDataZ = processed_data.complexKalmanFilterGyro(processed_data.gyroZ, processed_data.kalGyroZ, processed_data.yaw)
+# Filter the combined accelerations with a EMWA filter
+emwa_data = Data.emwaFilter(comb_acc, alpha=0.85)
 
-horCompo = processed_data.horizontalComponent(gyroKalDataX) # Horizontal component of acceleration
+# Create vectors in fixed coordinate frame
+vector_data = Data.vectorComponents()
+
+# Initialise the kalmanfilter class
+kf_comb_acc = kf(comb_acc, Type='Acc')
+kf_anterioposterior = kf(vector_data[0], Type='Acc')
+kf_mediolateral = kf(vector_data[1], Type='Acc')
+kf_vertical = kf(vector_data[2], Type='Acc')
+
+# Compute the kalmanfiltered vectors
+pos, vel, acc = kf_comb_acc.kalmanFilter(reset_times=indices)
+pos_ML, vel_ML, acc_ML = kf_mediolateral.kalmanFilter(reset_times=peaks)        
+pos_AP, vel_AP, acc_AP = kf_anterioposterior.kalmanFilter(reset_times=peaks)
+pos_vert, vel_vert, acc_vert = kf_vertical.kalmanFilter(reset_times=peaks)      #! ML
+
+# Compute accelerations, velocity and position for one step
+ss_comb_acc, ss_comb_acc_time = Data.dataOneStep(comb_acc, indices, step_number=5)
+kf_ss_comb_acc = kf(ss_comb_acc, Type='Acc')
+pos_ss, vel_ss, acc_ss = kf_ss_comb_acc.kalmanFilter(indices[5:7])
+
+# Compute step frequencies
+f_step_avg, f_sstep = Data.stepFrequency(peaks)
 
 
 
 
 sw_width = 50
 sw_type = 'x'
-noise_signal = processed_data.SW(sw_width, sw_type, experiment_n=s.experiment)
+noise_signal = DataProcess.SW(sw_width, sw_type, experiment_n=s.experiment)
 peaks_idx = gct_peaks(noise_signal)
-print(gct_from_peaks(peaks_idx, noise_signal, data[s.experiment]['time_a']))
+print(gct_from_peaks(peaks_idx, noise_signal, Data[s.experiment]['time_a']))
 
 
 """
 ------------------------------PLOTTING DATA ------------------------------
 """
-data_plot = DataPlot()  # Initialise class
-#Todo: different axis lables in subplots
-
-# Plot all accelerations and combined acceleration
-accSubSubPlot = data_plot.plot2by2( data[s.experiment]['time_a'], combAcc[s.experiment], 
-                                    data[s.experiment]['time_a'], data[s.experiment]['accX'],
-                                    data[s.experiment]['time_a'], data[s.experiment]['accY'],
-                                    data[s.experiment]['time_a'], data[s.experiment]['accZ'],
-                                    lab1= 'combAcc', lab2= 'accX', lab3='accY', lab4='accZ')
-data_plot.show_plot(accSubSubPlot, x_lim=[0,20000], y_lim=[-10, 30],
-                    y_label='magnitude', x_label='time', title='Combined acceleration and raw accelerations', legend=True)
 
 
-# Plot complex kalman filtered data
-KalComplex = data_plot.plot3by1(    data[s.experiment]['time_a'], accKalData[0], 
-                                    data[s.experiment]['time_a'], accKalData[1],
-                                    data[s.experiment]['time_a'], accKalData[2],
-                                    lab1= 'position', lab2 ='speed', lab3='acceleration')
-data_plot.show_plot(KalComplex, x_lim=[0,20000], y_lim=[-10, 30],
-                    y_label='magnitude', x_label='time', title='Position, speed and acceleration', legend=True)
-
-# Plot EMWA filter
-emwaPlot = data_plot.plot1by1(data[s.experiment]['time_a'], emwaData, lab='EMWA filtered combined acceleration')
-emwaPlot = data_plot.plot1by1(data[s.experiment]['time_a'], combAcc[s.experiment], lab='combined acceleration', figure=emwaPlot, cnr=6)
-emwaPlot = data_plot.plot1by1(peaks[1], peaks[0], lab="peaks", figure=emwaPlot, cnr=2, mnr=1, points=True)
-emwaPlot = data_plot.plot1by1(valleys[1], valleys[0], lab="valleys", figure=emwaPlot, cnr=3, mnr=1, points=True)
-data_plot.show_plot(emwaPlot, x_lim=[0,20000], y_lim=[-10, 30],
-                    y_label='magnitude', x_label='time', title='EMWA filtered accelerations', legend=True)
 
 
-# Plot horizontal component of acceleration
-HorAcc = data_plot.plot1by1(data[s.experiment]['time_a'], horCompo[s.experiment], lab='horizontal component of acceleration')
-data_plot.show_plot(HorAcc, x_lim=[0,20000], y_lim=[-10, 30],
-                    y_label='magnitude', x_label='time', title='Horizontal acceleration', legend=True)
+# Initialise the data plotting class
+Data_plot = DataPlot()                          #Todo: different axis lables in subplots
+
+# Create figure with combined accelerations
+accPlot = Data_plot.plot1by2(xdata1=timestamps, ydata1=comb_acc, lab1='combined accelerations', linenumber1=0,
+                             xdata2=timestamps, ydata2=rawdata[s.experiment]['accX'], lab2='x acceleration', linenumber2=0 )
+accPlot = Data_plot.plot1by2(figure=accPlot, xdata1=timestamps, ydata1=emwa_data, lab1='EMWA filtered combined acceleration', linenumber1=1, subplotnumber=0 )
+accPlot = Data_plot.plot1by2(figure=accPlot, xdata1=timestamps, ydata1=rawdata[s.experiment]['accY'], lab1='y acceleration', linenumber1=1, subplotnumber=1,
+                            xdata2=timestamps, ydata2=rawdata[s.experiment]['accZ'], lab2='z acceleration', linenumber2=2)
+accPlot = Data_plot.plot1by2(figure=accPlot, xdata1=peaks[1], ydata1=peaks[0], lab1='peaks and valleys', points=True, linenumber1=1,
+                            xdata2=valleys[1], ydata2=valleys[0], linenumber2=1, subplotnumber=0 )
+
+# Plot figure with combined accelerations
+Data_plot.show_plot(accPlot, y_label='acceleration [m/s]', x_label=['time [ms]'], title='Accelerations', legend=True)
+
+# Create figure with accelerations, velocities and positions found from combined accelerations
+combPlot = Data_plot.plot3by1(  xdata1=timestamps, ydata1=pos, lab1='position',
+                                xdata2=timestamps, ydata2=vel, lab2='velocity',
+                                xdata3=timestamps, ydata3=acc, lab3='acceleration')
+
+# Plot figure with accelerations, velocities and positions
+Data_plot.show_plot(combPlot, y_label='', x_label='time [ms]', title='Processed combined accelerations', legend=True)
+
+# Create figure with accelerations, velocities and positions found from ML vector #! Under Construction
+vectorPlot_ML = Data_plot.plot3by1(  xdata1=timestamps, ydata1=pos_ML, lab1='position',
+                                xdata2=timestamps, ydata2=vel_ML, lab2='velocity',
+                                xdata3=timestamps, ydata3=acc_ML, lab3='acceleration')
+
+# Plot figure with accelerations, velocities and positions
+Data_plot.show_plot(vectorPlot_ML, y_label='', x_label='time [ms]', title='Processed ML accelerations', legend=True)
+
+
+# Create figure for one step
+ssPlot = Data_plot.plot1by1(ss_comb_acc_time, ss_comb_acc, lab='Combined acceleration', cnr=6)
+Data_plot.show_plot(ssPlot, 'magnitude', 'time', 'Combined accelerations for one step', legend=True)
+
+# Create figure with accelerations, velocities and positions for one step
+ss_combPlot = Data_plot.plot3by1(   xdata1=ss_comb_acc_time, ydata1=pos_ss, lab1='position',
+                                    xdata2=ss_comb_acc_time, ydata2=vel_ss, lab2='velocity',
+                                    xdata3=ss_comb_acc_time, ydata3=acc_ss, lab3='acceleration')
+
+# Plot figure with accelerations, velocities and positions
+Data_plot.show_plot(ss_combPlot, y_label='', x_label='time [s]', title='Processed single step accelerations', legend=True)
+
+# Plot step frequency
+nbStepList = [k for k in range (len(peaks[0])-1)]
+avgStepFreqList = [f_step_avg for k in range (len(peaks[0])-1)]
+fPlot = Data_plot.plot1by1(nbStepList, avgStepFreqList, lab='Average Step Frequency')
+fPlot = Data_plot.plot1by1(nbStepList, f_sstep, lab='Step Frequency', figure=fPlot, cnr=4, mnr=1, points=True )
+Data_plot.show_plot(fPlot, 'Step Frequency (steps/s)', 'Step Number', 'Step Frequency for Individual Steps', legend=True)
+
 #plot max
-maxplot = data_plot.plot1by1(data[s.experiment]['time_a'], data[s.experiment]['accX'], lab='AccX')
+maxplot = Data_plot.plot1by1(Data[s.experiment]['time_a'], Data[s.experiment]['accX'], lab='AccX')
 # maxplot = data_plot.plot1by1(data[s.experiment]['time_a'], data[s.experiment]['accY'], lab='AccY', figure=maxplot, cnr=6)
 # maxplot = data_plot.plot1by1(data[s.experiment]['time_a'], data[s.experiment]['accZ'], lab='AccZ', figure=maxplot, cnr=4)
 # maxplot = data_plot.plot1by1(data[s.experiment]['time_a'], emwaData, lab='EMWA combined acceleration', figure=maxplot, cnr=2)
-maxplot = data_plot.plot1by1(data[s.experiment]['time_a'], noise_signal, lab=f'SW noise - {sw_width} {sw_type}', figure=maxplot, cnr=5)
-maxplot = data_plot.plot1by1(data[s.experiment]['time_a'][peaks_idx], noise_signal[peaks_idx], lab=f'peaks', figure=maxplot, cnr=2, points=True)
+maxplot = Data_plot.plot1by1(Data[s.experiment]['time_a'], noise_signal, lab=f'SW noise - {sw_width} {sw_type}', figure=maxplot, cnr=5)
+maxplot = Data_plot.plot1by1(Data[s.experiment]['time_a'][peaks_idx], noise_signal[peaks_idx], lab=f'peaks', figure=maxplot, cnr=2, points=True)
 
-data_plot.show_plot(maxplot, x_lim=[0,20000], y_lim=[-10, 30],
+Data_plot.show_plot(maxplot, x_lim=[0,20000], y_lim=[-10, 30],
                     y_label='magnitude', x_label='time', title='max check', legend=True)
 
 #maxplot2 = data_plot.plot1by1(data[s.experiment]['time_a'], sw, lab='AccX')
+
 """
 ------------------------------CODE ENDING ------------------------------
 """
