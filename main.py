@@ -60,7 +60,8 @@ kf_ss_comb_acc = kf(ss_comb_acc, Type='Acc')
 pos_ss, vel_ss, acc_ss = kf_ss_comb_acc.kalmanFilter(indices[5:7])
 
 # Compute step frequencies
-f_step_avg, f_sstep = Data.stepFrequency(peaks)
+
+#f_step_avg, f_sstep = Data.stepFrequency(peaks)
 
 
 

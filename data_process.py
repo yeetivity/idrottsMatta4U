@@ -214,11 +214,11 @@ class DataProcess(object):
     """
     def SW(self, width: int, signal_type: str, experiment_n):
         if signal_type == 'x':
-            signal = self.accX
+            signal = self.acc[0]
         elif signal_type == 'y':
-            signal = self.accY
+            signal = self.acc[1]
         elif signal_type == 'z':
-            signal = self.accZ
+            signal = self.acc[2]
         elif signal_type == 'comb':
             signal = self.combAcc
         else:
@@ -236,8 +236,9 @@ class DataProcess(object):
             #noise_signal[i] = np.abs(signal_arr[i] - signal_arr[i + width - 1])
         
         filtered_signal=savitzky_golay(noise_signal, 81, 2)
-        maximum = np.amax(filtered_signal)
-        return filtered_signal/maximum
+        filtered_signal.sort()
+        scndmaximum = filtered_signal[-2]
+        return filtered_signal/scndmaximum
 
 
 
