@@ -2,6 +2,7 @@ from matplotlib.pyplot import step
 import numpy as np
 from settings import Settings as s
 from kalman_filter import KalmanFilter as kf
+import copy
 
 def find_nearest(array,value):
     idx = (np.abs(array - value)).argmin()
@@ -41,15 +42,15 @@ class DataProcess(object):
 
     def stepRegister_Init(self):
         #Todo See if we can move this to the settings somehow
-        K0 = 200        # Initial time interval threshold of Ki
+        K0 = 300        # Initial time interval threshold of Ki
         alpha = 0.7     # Scale factor used to determine the time interval threshold
-        W2 = 5          # Number of consecutive valleys
-        TH_pk = 5       # Peak detection threshold to exclude false detection
-        TH_s = 190      # Fixed value to detect static states and determine whether to stop the update of K_i
+        W2 = 3          # Number of consecutive valleys
+        TH_pk = 25       # Peak detection threshold to exclude false detection
+        TH_s = 200      # Fixed value to detect static states and determine whether to stop the update of K_i
         
         TH = 6          # Statistical value that used to distinguish the state of motion is intense or gentle  
         W1 = 3          # The window size of the acceleration-magnitude detector
-        TH_vy = 1.9     # Valley detection threshold that utilized to detect the valleys 
+        TH_vy = 3     # Valley detection threshold that utilized to detect the valleys 
         return K0, alpha, W2, TH_pk, TH_s, TH, W1, TH_vy
 
 
@@ -62,20 +63,13 @@ class DataProcess(object):
 
         maxima = [[],[]]        # Array with maxima
         minima = [[],[]]        # Array with minima
+
         indices = []
-
-        T=[]
-
-        for i in range(len(self.combAcc)-W1-1):
-            T.append(0)
-            variance = np.var(self.combAcc[i+1:i+1+W1])
-            for k in range(i+1,i+1+W1):
-                T[i]=T[i]+np.square(self.combAcc[k]-s.gravity)*(1/(np.square(variance)*W1))
         
         #* Valid valley detection
         # 1. Minima detection
-        for i in range(1,len(self.combAcc)-1-W1):
-            if ((self.combAcc[i] < self.combAcc[i+1]) and (self.combAcc[i] < self.combAcc[i-1]) and (T[i] < TH_vy)):
+        for i in range(1,len(self.combAcc)-1):
+            if ((self.combAcc[i] < self.combAcc[i+1]) and (self.combAcc[i] < self.combAcc[i-1]) and (self.combAcc[i] < TH_vy)):
                 minima[0].append(self.combAcc[i])
                 minima[1].append(self.time[i])
 
@@ -85,7 +79,7 @@ class DataProcess(object):
                 maxima[1].append(self.time[i])
                 indices.append(i)
 
-            #. Adapt TH_PK threshold according to the maximum value
+        #. Adapt TH_PK threshold according to the maximum value and remove all the wrong maxima
         TH_pk = max(maxima[0])*0.4 #TODO Choose the right value
         ind = 0
         while ind < len(maxima[0]):
@@ -96,6 +90,17 @@ class DataProcess(object):
                 
                 ind = ind
             else :
+                ind+=1
+
+        #. Remove all the valleys before first peak
+        ind = 0
+        while (ind<len(minima[0]) and minima[1][ind]<maxima[1][0]) :
+            if minima[1][ind]<maxima[1][0]:
+                minima[1].pop(ind)
+                minima[0].pop(ind)
+                
+                ind = ind
+            else:
                 ind+=1
             
         # 2. Single valley detection with temporal threshold constraint
@@ -113,20 +118,65 @@ class DataProcess(object):
             elif (np.abs(t_i - t_n) >= TH_s):
                 Ki = K0 
 
-            #* Valid peak detection
+            #* Valid valley detection
             if ((minima[1][max(n,1)]-minima[1][max(n-1,0)]) < Ki):
-                index = minima[0].index(max([minima[0][max(n,1)],minima[0][max(n-1,0)]]))     # Determine the index of the smallest peak
-                minima[0].pop(index)                                                          # Delete smallest peak
+                index = minima[0].index(max([minima[0][max(n,1)],minima[0][max(n-1,0)]]))     
+                minima[0].pop(index)                                                          
                 minima[1].pop(index)   
 
-            n_max = find_nearest(np.asarray(maxima[1]),t_i)
-
-            # 2. Single Peak Detection with temporal threshold constraint
-            if ((maxima[1][max(n_max,1)]-maxima[1][max(n_max-1,0)]) < Ki):
-                index = maxima[0].index(min([maxima[0][max(n_max,1)],maxima[0][max(n_max-1,0)]]))     # Determine the index of the smallest peak
-                maxima[0].pop(index)                                                                  # Delete smallest peak
+        j = 1
+        while j < len(maxima[0]):
+            if ((maxima[1][j]-maxima[1][j-1]) < K0):
+                if maxima[0][j]>maxima[0][j-1]:
+                    index = j-1     # Determine the index of the smallest peak
+                else :
+                    index = j
+                maxima[0].pop(index)                                            # Delete smallest peak
                 maxima[1].pop(index)
-                indices.pop(index)   
+                j = j
+            else:
+                j+= 1
+
+        # Valid peak detection + valid valley detection
+        ind=1
+        while ind<len(maxima[0]):
+            mini = minima[1][ind-1]
+            maxi = maxima[1][ind]
+            maxi_1 = maxima[1][ind-1]
+            
+            #remove if multiple valleys in one cycle
+            ind_extra_valley = ind
+            while ind_extra_valley<len(minima[1]) and minima[1][ind_extra_valley]<=maxima[1][ind] :
+                minima[1].pop(ind)
+                minima[0].pop(ind)
+
+                ind_extra_valley = ind_extra_valley
+
+            if ind == 1:
+                if mini<=maxi and mini>=maxi_1:
+                    ind+=1
+                else:
+                    maxima[0].pop(ind)
+                    maxima[1].pop(ind)
+                    indices.pop(ind)
+
+                    ind=ind
+            else :
+                if mini<=maxi and mini>=maxi_1:
+                    ind+=1
+                else:
+                    maxima[0].pop(ind-1)
+                    maxima[1].pop(ind-1)
+                    indices.pop(ind-1)
+
+                    ind=ind
+
+        if len(maxima[0])<len(minima[0]):
+            difference = len(minima[0])-len(maxima[0])
+            print(difference)
+            for i in range(difference):
+                minima[0].pop(len(maxima[0]))
+                minima[1].pop(len(maxima[0]))
 
         #Results
         print('Amount of peaks:', len(maxima[0]))
@@ -190,24 +240,23 @@ class DataProcess(object):
         """
 
         oneStepData = full_data[indices[step_number]:indices[step_number+1]]
+        copyTimeList = self.time.copy()
 
-        oneStepTimeList = self.time[indices[step_number]:indices[step_number+1]]
+        oneStepTimeList = copyTimeList[indices[step_number]:indices[step_number+1]]
         return oneStepData, oneStepTimeList
 
 
     def stepFrequency(self, peaks):
         """
         """
-        # Compute Average Step Frequency
-        nb_peaks = len(peaks[0])                        # number of steps
-        total_time = (peaks[1][-1] - peaks[1][0]) / 1000    # total time between steps
-        avgStepFreq = nb_peaks / total_time             # average frequency
-
         # Compute step frequency for individual steps
         stepFreq = []
         for i in range(len(peaks[0])-1):
             timeOneStep = (peaks[1][i+1] - peaks[1][i]) / 1000
             stepFreq.append(1 / timeOneStep)
+
+        # Compute Average Step Frequency
+        avgStepFreq = sum(stepFreq) / len(stepFreq)            
 
         return avgStepFreq, stepFreq 
         

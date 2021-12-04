@@ -102,7 +102,7 @@ class DataRead():
                         self.transdata[i]['accX'].append(float(data_container[i][ii][1]))
                         self.transdata[i]['accY'].append(float(data_container[i][ii][2]))
                         self.transdata[i]['accZ'].append(float(data_container[i][ii][3]))
-            if (type == 'gyr'):             # Fill in the gyro data
+            elif (type == 'gyro'):             # Fill in the gyro data
                 for jj in range(len(data_container[i])):
                     if (jj != 0):
                         self.transdata[i]['time_g'].append(float(data_container[i][jj][0]))

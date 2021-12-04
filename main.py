@@ -61,26 +61,26 @@ list_pos_ss = []
 list_vel_ss = []
 list_acc_ss = []
 
-# for i in range(len(indices)-1):
-#     ss_comb_acc, ss_comb_acc_time = Data.dataOneStep(comb_acc, indices, step_number=i)
-#     list_ss_comb_acc.append(ss_comb_acc)
+for i in range(len(indices)-1):
+    ss_comb_acc, ss_comb_acc_time = Data.dataOneStep(comb_acc, indices, step_number=i)
+    list_ss_comb_acc.append(ss_comb_acc)
     
-#     reset_ss_comb_acc_time = resetTimeList(ss_comb_acc_time)
-#     list_ss_comb_acc_time.append(reset_ss_comb_acc_time)
+    reset_ss_comb_acc_time = resetTimeList(ss_comb_acc_time)
+    list_ss_comb_acc_time.append(reset_ss_comb_acc_time)
 
-# for i in range (len(list_ss_comb_acc)):
-#     if i == (len(list_ss_comb_acc)-1):
-#         kf_ss_comb_acc = kf(list_ss_comb_acc[i], Type='Acc')
-#         pos_ss, vel_ss, acc_ss = kf_ss_comb_acc.kalmanFilter(indices[-2:])
-#         list_pos_ss.append(pos_ss)
-#         list_vel_ss.append(vel_ss)
-#         list_acc_ss.append(acc_ss)
-#     else :    
-#         kf_ss_comb_acc = kf(list_ss_comb_acc[i], Type='Acc')
-#         pos_ss, vel_ss, acc_ss = kf_ss_comb_acc.kalmanFilter(indices[i:i+2])
-#         list_pos_ss.append(pos_ss)
-#         list_vel_ss.append(vel_ss)
-#         list_acc_ss.append(acc_ss)
+for i in range (len(list_ss_comb_acc)):
+    if i == (len(list_ss_comb_acc)-1):
+        kf_ss_comb_acc = kf(list_ss_comb_acc[i], Type='Acc')
+        pos_ss, vel_ss, acc_ss = kf_ss_comb_acc.kalmanFilter(indices[-2:])
+        list_pos_ss.append(pos_ss)
+        list_vel_ss.append(vel_ss)
+        list_acc_ss.append(acc_ss)
+    else :    
+        kf_ss_comb_acc = kf(list_ss_comb_acc[i], Type='Acc')
+        pos_ss, vel_ss, acc_ss = kf_ss_comb_acc.kalmanFilter(indices[i:i+2])
+        list_pos_ss.append(pos_ss)
+        list_vel_ss.append(vel_ss)
+        list_acc_ss.append(acc_ss)
 
 
 # Compute step frequencies
@@ -101,6 +101,12 @@ accPlot = Data_plot.plot1by2(figure=accPlot, xdata1=timestamps, ydata1=rawdata[s
                             xdata2=timestamps, ydata2=rawdata[s.experiment]['accZ'], lab2='z acceleration', linenumber2=2)
 accPlot = Data_plot.plot1by2(figure=accPlot, xdata1=peaks[1], ydata1=peaks[0], lab1='peaks and valleys', points=True, linenumber1=1,
                             xdata2=valleys[1], ydata2=valleys[0], linenumber2=1, subplotnumber=0 )
+
+step_plot = Data_plot.plot1by1(timestamps, comb_acc, lab='combAcc')
+step_plot = Data_plot.plot1by1(figure=step_plot,xdata=peaks[1],ydata=peaks[0],lab='peaks', points = True, cnr=0)
+step_plot = Data_plot.plot1by1(figure=step_plot,xdata=valleys[1],ydata=valleys[0], lab='peaks', points=True, cnr=4)
+
+Data_plot.show_plot(step_plot,y_label='acceleration [m/s]', x_label=['time [ms]'], title='Step detection', legend=True)
 
 # Plot figure with combined accelerations
 Data_plot.show_plot(accPlot, y_label='acceleration [m/s]', x_label=['time [ms]'], title='Accelerations', legend=True)
