@@ -4,10 +4,14 @@ class Settings(object):
     """
 
     # Readout settings
-    folderpath = 'VALIDATION_SET'
+    folderpath = 'DATA_EXP812'
     filetype = 'csv'
     subfolders = False
+<<<<<<< HEAD
     experiment = 29
+=======
+    experiment = 34
+>>>>>>> origin/GCTtest
 
     # Plot settings
     padding = 5

@@ -12,6 +12,8 @@ from settings import Settings as s
 from data_read import DataRead
 from data_plot import DataPlot
 from data_process import DataProcess, find_nearest, resetTimeList
+from data_process import DataProcess, gct_from_peaks
+from data_process import gct_peaks
 from kalman_filter import KalmanFilter as kf
 
 start_time = t.time()
@@ -84,12 +86,27 @@ for i in range (len(list_ss_comb_acc)):
 
 
 # Compute step frequencies
+
 f_step_avg, f_sstep = Data.stepFrequency(peaks)
+
+
+
+
+sw_width = 50
+sw_type = 'x'
+noise_signal = DataProcess.SW(sw_width, sw_type, experiment_n=s.experiment)
+peaks_idx = gct_peaks(noise_signal)
+print(gct_from_peaks(peaks_idx, noise_signal, Data[s.experiment]['time_a']))
+
 
 
 """
 ------------------------------PLOTTING DATA ------------------------------
 """
+
+
+
+
 # Initialise the data plotting class
 Data_plot = DataPlot()                          #Todo: different axis lables in subplots
 
@@ -151,6 +168,20 @@ avgStepFreqList = [f_step_avg for k in range (len(peaks[0])-1)]
 fPlot = Data_plot.plot1by1(nbStepList, avgStepFreqList, lab='Average Step Frequency')
 fPlot = Data_plot.plot1by1(nbStepList, f_sstep, lab='Step Frequency', figure=fPlot, cnr=4, mnr=1, points=True )
 Data_plot.show_plot(fPlot, 'Step Frequency (steps/s)', 'Step Number', 'Step Frequency for Individual Steps', legend=True)
+
+#plot max
+maxplot = Data_plot.plot1by1(Data[s.experiment]['time_a'], Data[s.experiment]['accX'], lab='AccX')
+# maxplot = data_plot.plot1by1(data[s.experiment]['time_a'], data[s.experiment]['accY'], lab='AccY', figure=maxplot, cnr=6)
+# maxplot = data_plot.plot1by1(data[s.experiment]['time_a'], data[s.experiment]['accZ'], lab='AccZ', figure=maxplot, cnr=4)
+# maxplot = data_plot.plot1by1(data[s.experiment]['time_a'], emwaData, lab='EMWA combined acceleration', figure=maxplot, cnr=2)
+maxplot = Data_plot.plot1by1(Data[s.experiment]['time_a'], noise_signal, lab=f'SW noise - {sw_width} {sw_type}', figure=maxplot, cnr=5)
+maxplot = Data_plot.plot1by1(Data[s.experiment]['time_a'][peaks_idx], noise_signal[peaks_idx], lab=f'peaks', figure=maxplot, cnr=2, points=True)
+
+Data_plot.show_plot(maxplot, x_lim=[0,20000], y_lim=[-10, 30],
+                    y_label='magnitude', x_label='time', title='max check', legend=True)
+
+#maxplot2 = data_plot.plot1by1(data[s.experiment]['time_a'], sw, lab='AccX')
+
 """
 ------------------------------CODE ENDING ------------------------------
 """
