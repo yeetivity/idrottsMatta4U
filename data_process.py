@@ -1,8 +1,5 @@
-<<<<<<< HEAD
 from matplotlib.pyplot import step
-=======
 from sys import intern
->>>>>>> origin/GCTtest
 import numpy as np
 from math import factorial
 from settings import Settings as s
@@ -420,14 +417,8 @@ def savitzky_golay(y, window_size, order, deriv=0, rate=1):
             timeOneStep = (peaks[1][i+1] - peaks[1][i]) / 1000
             stepFreq.append(1 / timeOneStep)
 
-<<<<<<< HEAD
         # Compute Average Step Frequency
         avgStepFreq = sum(stepFreq) / len(stepFreq)            
 
         return avgStepFreq, stepFreq 
         
-
-
-=======
-        return avgStepFreq, stepFreq 
->>>>>>> origin/GCTtest
