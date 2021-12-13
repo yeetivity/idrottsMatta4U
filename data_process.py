@@ -212,7 +212,7 @@ class DataProcess(object):
     
 
     """
-    def SW(self, width: int, signal_type: str, experiment_n):
+    def SW(self, width: int, signal_type: str):
         if signal_type == 'x':
             signal = self.acc[0]
         elif signal_type == 'y':
@@ -223,21 +223,23 @@ class DataProcess(object):
             signal = self.combAcc
         else:
             print('only x, y, z or comb is allowed')
-        signal = signal[experiment_n]
+        #signal = signal[experiment_n]
 
         noise_signal = np.zeros(len(signal))
 
         signal_arr = np.array(signal + [0]*width)
         print(f'size: {signal_arr.size}')
-
         for i in range(len(signal)):# len - width -1 + width -1
             
             noise_signal[i] = np.sum(np.abs(signal_arr[i] - signal_arr[np.arange(i+1, i+width)]))
             #noise_signal[i] = np.abs(signal_arr[i] - signal_arr[i + width - 1])
         
-        filtered_signal=savitzky_golay(noise_signal, 81, 2)
-        filtered_signal.sort()
-        scndmaximum = filtered_signal[-2]
+
+        filtered_signal = savitzky_golay(noise_signal, 81, 2)
+
+        ordered_signal = np.sort(filtered_signal)
+
+        scndmaximum = ordered_signal[-5]
         return filtered_signal/scndmaximum
 
 
@@ -264,7 +266,7 @@ def gct_from_peaks(peaks_idx: list, signal, time):
             
 
 
-def savitzky_golay(y, window_size, order, deriv=0, rate=1):
+def savitzky_golay(y, window_size, order, deriv=0, rate=1) -> np.ndarray:
     r"""Smooth (and optionally differentiate) data with a Savitzky-Golay filter.
     The Savitzky-Golay filter removes high frequency noise from data.
     It has the advantage of preserving the original shape and

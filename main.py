@@ -9,7 +9,7 @@ matplotlib.use("Qt5Agg")
 
 from settings import Settings as s
 from data_read import DataRead
-from data_plot import DataPlot
+from data_plot import DataPlot, plot_gct_total
 from data_process import DataProcess, gct_from_peaks
 from data_process import gct_peaks
 from kalman_filter import KalmanFilter as kf
@@ -68,9 +68,9 @@ pos_ss, vel_ss, acc_ss = kf_ss_comb_acc.kalmanFilter(indices[5:7])
 
 sw_width = 50
 sw_type = 'x'
-noise_signal = DataProcess.SW(sw_width, sw_type, experiment_n=s.experiment)
+noise_signal = Data.SW(sw_width, sw_type)
 peaks_idx = gct_peaks(noise_signal)
-print(gct_from_peaks(peaks_idx, noise_signal, Data[s.experiment]['time_a']))
+print(gct_from_peaks(peaks_idx, noise_signal, Data.time))
 
 
 """
@@ -125,24 +125,27 @@ ss_combPlot = Data_plot.plot3by1(   xdata1=ss_comb_acc_time, ydata1=pos_ss, lab1
 Data_plot.show_plot(ss_combPlot, y_label='', x_label='time [s]', title='Processed single step accelerations', legend=True)
 
 # Plot step frequency
-nbStepList = [k for k in range (len(peaks[0])-1)]
-avgStepFreqList = [f_step_avg for k in range (len(peaks[0])-1)]
-fPlot = Data_plot.plot1by1(nbStepList, avgStepFreqList, lab='Average Step Frequency')
-fPlot = Data_plot.plot1by1(nbStepList, f_sstep, lab='Step Frequency', figure=fPlot, cnr=4, mnr=1, points=True )
-Data_plot.show_plot(fPlot, 'Step Frequency (steps/s)', 'Step Number', 'Step Frequency for Individual Steps', legend=True)
+# nbStepList = [k for k in range (len(peaks[0])-1)]
+# avgStepFreqList = [f_step_avg for k in range (len(peaks[0])-1)]
+# fPlot = Data_plot.plot1by1(nbStepList, avgStepFreqList, lab='Average Step Frequency')
+# fPlot = Data_plot.plot1by1(nbStepList, f_sstep, lab='Step Frequency', figure=fPlot, cnr=4, mnr=1, points=True )
+# Data_plot.show_plot(fPlot, 'Step Frequency (steps/s)', 'Step Number', 'Step Frequency for Individual Steps', legend=True)
 
 #plot max
-maxplot = Data_plot.plot1by1(Data[s.experiment]['time_a'], Data[s.experiment]['accX'], lab='AccX')
+maxplot = Data_plot.plot1by1(Data.time, Data.acc[0], lab='AccX')
 # maxplot = data_plot.plot1by1(data[s.experiment]['time_a'], data[s.experiment]['accY'], lab='AccY', figure=maxplot, cnr=6)
 # maxplot = data_plot.plot1by1(data[s.experiment]['time_a'], data[s.experiment]['accZ'], lab='AccZ', figure=maxplot, cnr=4)
 # maxplot = data_plot.plot1by1(data[s.experiment]['time_a'], emwaData, lab='EMWA combined acceleration', figure=maxplot, cnr=2)
-maxplot = Data_plot.plot1by1(Data[s.experiment]['time_a'], noise_signal, lab=f'SW noise - {sw_width} {sw_type}', figure=maxplot, cnr=5)
-maxplot = Data_plot.plot1by1(Data[s.experiment]['time_a'][peaks_idx], noise_signal[peaks_idx], lab=f'peaks', figure=maxplot, cnr=2, points=True)
+maxplot = Data_plot.plot1by1(Data.time, noise_signal, lab=f'SW noise - {sw_width} {sw_type}', figure=maxplot, cnr=5)
+maxplot = Data_plot.plot1by1(Data.time[peaks_idx], noise_signal[peaks_idx], lab=f'peaks', figure=maxplot, cnr=2, points=True)
 
 Data_plot.show_plot(maxplot, x_lim=[0,20000], y_lim=[-10, 30],
                     y_label='magnitude', x_label='time', title='max check', legend=True)
 
 #maxplot2 = data_plot.plot1by1(data[s.experiment]['time_a'], sw, lab='AccX')
+
+# GCT for all the experiments: plot
+plot_gct_total(rawdata)
 
 """
 ------------------------------CODE ENDING ------------------------------

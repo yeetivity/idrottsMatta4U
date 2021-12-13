@@ -1,5 +1,8 @@
+from math import exp
 from matplotlib import pyplot as plt
 import numpy as np
+
+from data_process import DataProcess, gct_from_peaks, gct_peaks
 
 class DataPlot(object):
     """
@@ -308,3 +311,89 @@ class DataPlot(object):
             
         return
 
+def plot_gct_total(rawdata):
+    experiment_lut = [
+        ['Jitse', 5],
+        ['Jitse', 5],
+        ['Jitse', 15],
+        ['Jitse', 15],
+        ['Ahmed', 5],
+        ['Ahmed', 5],
+        ['Ahmed', 15],
+        ['Ahmed', 15],
+        ['Elisa', 5],
+        ['Elisa', 5],
+        ['Elisa', 15],
+        ['Elisa', 15],
+        ['Jitse', 20],
+        ['Jitse', 20],
+    ]
+
+    speeds = {
+        5: 0,
+        15: 1,
+        20: 2
+    }
+
+    name_lut = {
+        'Jitse': 0,
+        'Ahmed': 1,
+        'Elisa': 2
+    }
+
+    colors = {
+        'Jitse': 'red',
+        'Ahmed': 'blue',
+        'Elisa': 'green'
+    }
+    
+    gct_total = []
+
+    fig, ax = plt.subplots(dpi=100)
+    for e in range(14):
+       exp_n = e + 21
+       data = DataProcess(rawdata[exp_n])
+       noise_signal = data.SW(50, 'x')
+       peaks_idx = gct_peaks(noise_signal)
+       gct_total.append(gct_from_peaks(peaks_idx, noise_signal, data.time))
+       x = np.array([experiment_lut[e][1]] * len(gct_total[-1]))
+       ax = plt.scatter(x=x + np.random.normal(0, 0.3, x.size),
+        y=gct_total[-1],
+        c=colors[experiment_lut[e][0]], alpha=0.3)
+
+    # ax.set_ylabel('GCT')
+    # ax.set_xlabel('Speed')
+    # ax.set_title('Ground contact time scatter plot')
+    # ax.legend()
+    # fig.show()
+
+    fig1, ax1 = plt.subplots()
+    fig2, ax2 = plt.subplots()
+    fig3, ax3 = plt.subplots()
+    axes = [ax1, ax2, ax3]
+
+    for e in range(14):
+       axes[speeds[experiment_lut[e][1]]].plot(
+           gct_total[e],
+           c=colors[experiment_lut[e][0]]
+        )
+    
+    axes[2].set_ylim(0, 300)
+    axes[0].legend(['Jitse']*2 + ['Ahmed']*2 + ['Elisa']*2)
+    axes[1].legend(['Jitse']*2 + ['Ahmed']*2 + ['Elisa']*2)
+    axes[2].legend(['Jitse']*2)
+    
+    axes[0].set_title('5km/h')
+    axes[1].set_title('15km/h')
+    axes[2].set_title('20km/h')
+
+    for ax in axes:
+        ax.set_xlabel('steps') 
+        ax.set_ylabel('GCT [ms]') 
+
+
+
+    fig1.show()
+    fig2.show()
+    fig3.show()
+    return fig2
