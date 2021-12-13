@@ -4,7 +4,7 @@ class Settings(object):
     """
 
     # Readout settings
-    folderpath = 'VALIDATION_SET'
+    folderpath = 'DATA_EXP812'
     filetype = 'csv'
     subfolders = False
     experiment = 23
