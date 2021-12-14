@@ -313,38 +313,41 @@ class DataPlot(object):
 
 def plot_gct_total(rawdata):
     experiment_lut = [
-        ['Jitse', 5],
-        ['Jitse', 5],
-        ['Jitse', 15],
-        ['Jitse', 15],
-        ['Ahmed', 5],
-        ['Ahmed', 5],
-        ['Ahmed', 15],
-        ['Ahmed', 15],
-        ['Elisa', 5],
-        ['Elisa', 5],
-        ['Elisa', 15],
-        ['Elisa', 15],
-        ['Jitse', 20],
-        ['Jitse', 20],
+        ['long_jump', 1],
+        ['long_jump', 2],
+        ['long_jump', 3],
+        ['long_jump', 4],
+        ['sprint', 1],
+        ['sprint', 2],
+        ['sprint', 3],
+        ['high_jump', 1],
+        ['high_jump', 2],
+        ['high_jump', 3],
+        ['high_jump', 4],
+        ['80m', 1],
+        ['80m', 2],
+        ['80m', 3],
     ]
 
     speeds = {
-        5: 0,
-        15: 1,
-        20: 2
+        1: 0,
+        2: 1,
+        3: 2,
+        4: 3
     }
 
     name_lut = {
-        'Jitse': 0,
-        'Ahmed': 1,
-        'Elisa': 2
+        'first': 0,
+        'second': 1,
+        'third': 2,
+        'fourth': 3
     }
 
     colors = {
-        'Jitse': 'red',
-        'Ahmed': 'blue',
-        'Elisa': 'green'
+        'first': 'red',
+        'second': 'blue',
+        'third': 'green',
+        'fourth': 'black'
     }
     
     gct_total = []
@@ -370,7 +373,8 @@ def plot_gct_total(rawdata):
     fig1, ax1 = plt.subplots()
     fig2, ax2 = plt.subplots()
     fig3, ax3 = plt.subplots()
-    axes = [ax1, ax2, ax3]
+    fig4, ax4 = plt.subplots()
+    axes = [ax1, ax2, ax3, ax4]
 
     for e in range(14):
        axes[speeds[experiment_lut[e][1]]].plot(
@@ -379,13 +383,15 @@ def plot_gct_total(rawdata):
         )
     
     axes[2].set_ylim(0, 300)
-    axes[0].legend(['Jitse']*2 + ['Ahmed']*2 + ['Elisa']*2)
-    axes[1].legend(['Jitse']*2 + ['Ahmed']*2 + ['Elisa']*2)
-    axes[2].legend(['Jitse']*2)
+    axes[0].legend(['first'] + ['second'] + ['third'] + ['fourth'])
+    axes[1].legend(['first'] + ['second'] + ['third'])
+    axes[2].legend(['first'] + ['second'] + ['third'] + ['fourth'])
+    axes[3].legend(['first'] + ['second'] + ['third'])
     
-    axes[0].set_title('5km/h')
-    axes[1].set_title('15km/h')
-    axes[2].set_title('20km/h')
+    axes[0].set_title('long jump')
+    axes[1].set_title('sprint')
+    axes[2].set_title('high jump')
+    axes[3].set_title('80m')
 
     for ax in axes:
         ax.set_xlabel('steps') 
@@ -396,4 +402,5 @@ def plot_gct_total(rawdata):
     fig1.show()
     fig2.show()
     fig3.show()
+    fig4.show()
     return fig2

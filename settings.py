@@ -7,7 +7,7 @@ class Settings(object):
     folderpath = 'DATA_EXP812'
     filetype = 'csv'
     subfolders = False
-    experiment = 23
+    experiment = 13
 
     # Plot settings
     padding = 5
