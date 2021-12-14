@@ -6,13 +6,20 @@ def find_nearest(array,value):
     idx = (np.abs(array - value)).argmin()
     return idx
 
+def convert(lst):
+    """
+    return the inverse of the list
+    """
+    lst = np.array(lst)
+    return list(-lst)
+
 class DataProcess(object):
     """
     
     """
     def __init__(self, storeddata): #TODO make everything that can be array an array
         self.gyro = [storeddata['gyrX'],storeddata['gyrY'],storeddata['gyrZ']]
-        self.acc = [storeddata['accX'],storeddata['accY'],storeddata['accZ']]
+        self.acc = [storeddata['accX'], convert(storeddata['accY']), convert(storeddata['accZ'])] #TODO check x-axis
         self.time = storeddata['time_a'] 
 
         self.combAcc = []
@@ -125,7 +132,7 @@ class DataProcess(object):
             
         return emwaData
 
-
+    
     def vectorComponents(self):
         """
         Compute the horizontal component of acceleration (or velocity) #Todo: check if right axes are used.
@@ -151,9 +158,9 @@ class DataProcess(object):
         # all the values in one experiment
         for j in range(len(coor_lcl_acc[0])):
             # Todo: check if kalmangyro outputs radians
-            rotation_matrix = np.array([    [np.cos(angle[0][j]),    0,  -np.sin(angle[0][j])],
+            rotation_matrix = np.array([    [np.cos(np.radians(angle[0][j])),    0,  -np.sin(np.radians(angle[0][j]))],
                                             [0,                         1,     0],
-                                            [np.sin(angle[0][j]),    0,  np.cos(angle[0][j])]])
+                                            [-np.sin(np.radians(angle[0][j])),    0,  -np.cos(np.radians(angle[0][j]))]])
             array = (np.dot(rotation_matrix, coor_lcl_acc[:,[j]]))
             for i in range(3):
                 coor_fxd_acc[i].append(array[i][0])
