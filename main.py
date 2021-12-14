@@ -157,6 +157,14 @@ vectorPlot_vert = Data_plot.plot3by1(  xdata1=timestamps, ydata1=pos_vert, lab1=
 Data_plot.show_plot(vectorPlot_vert, y_label='', x_label='time [ms]', title='Processed vert accelerations', legend=True)
 
 
+# Plot complex kalman filtered data for ONE STEP
+oneStepKalComplex = Data_plot.plot3by1(oneStepCombAccTimelist, oneStepKalData[0], 
+                                    oneStepCombAccTimelist, oneStepKalData[1],
+                                    oneStepCombAccTimelist, oneStepKalData[2],
+                                    lab1= 'position', lab2 ='speed', lab3='acceleration')
+data_plot.show_plot(oneStepKalComplex,
+                    y_label='magnitude', x_label='time', title='Position, speed and acceleration', legend=True)
+
 # Create figure for one step
 #ssPlot = Data_plot.plot1by1(ss_comb_acc_time, ss_comb_acc, lab='Combined acceleration', cnr=6)
 #Data_plot.show_plot(ssPlot, 'magnitude', 'time', 'Combined accelerations for one step', legend=True)
