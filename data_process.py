@@ -53,7 +53,7 @@ class DataProcess(object):
         
         TH = 6          # Statistical value that used to distinguish the state of motion is intense or gentle  
         W1 = 3          # The window size of the acceleration-magnitude detector
-        TH_vy = 3     # Valley detection threshold that utilized to detect the valleys 
+        TH_vy = 15     # Valley detection threshold that utilized to detect the valleys 
         return K0, alpha, W2, TH_pk, TH_s, TH, W1, TH_vy
 
 
@@ -75,21 +75,22 @@ class DataProcess(object):
             if ((self.combAcc[i] < self.combAcc[i+1]) and (self.combAcc[i] < self.combAcc[i-1]) and (self.combAcc[i] < TH_vy)):
                 minima[0].append(self.combAcc[i])
                 minima[1].append(self.time[i])
+                indices.append(i)
 
             # 1. Maxima Detection
             if ((self.combAcc[i] > self.combAcc[i+1]) and (self.combAcc[i] > self.combAcc[i-1]) and (self.combAcc[i] > TH_pk)):
                 maxima[0].append(self.combAcc[i])
                 maxima[1].append(self.time[i])
-                indices.append(i)
+                
 
         #. Adapt TH_PK threshold according to the maximum value and remove all the wrong maxima
-        TH_pk = max(maxima[0])*0.4 #TODO Choose the right value
+        TH_pk = max(maxima[0])*0.3 #TODO Choose the right value
         ind = 0
         while ind < len(maxima[0]):
             if maxima[0][ind] <= TH_pk:
                 maxima[0].pop(ind)
                 maxima[1].pop(ind)
-                indices.pop(ind)
+                
                 
                 ind = ind
             else :
@@ -97,10 +98,11 @@ class DataProcess(object):
 
         #. Remove all the valleys before first peak
         ind = 0
-        while (ind<len(minima[0]) and minima[1][ind]<maxima[1][0]) :
-            if minima[1][ind]<maxima[1][0]:
+        while (ind<len(minima[0])-1 and minima[1][ind]<maxima[1][0]) :
+            if minima[1][ind]<maxima[1][0] and minima[1][ind+1]<maxima[1][0]:
                 minima[1].pop(ind)
                 minima[0].pop(ind)
+                indices.pop(ind)
                 
                 ind = ind
             else:
@@ -122,10 +124,12 @@ class DataProcess(object):
                 Ki = K0 
 
             #* Valid valley detection
+            Ki = max(Ki,K0)
             if ((minima[1][max(n,1)]-minima[1][max(n-1,0)]) < Ki):
                 index = minima[0].index(max([minima[0][max(n,1)],minima[0][max(n-1,0)]]))     
                 minima[0].pop(index)                                                          
                 minima[1].pop(index)   
+                indices.pop(index)
 
         j = 1
         while j < len(maxima[0]):
@@ -140,50 +144,17 @@ class DataProcess(object):
             else:
                 j+= 1
 
-        # Valid peak detection + valid valley detection
-        ind=1
-        while ind<len(maxima[0]):
-            mini = minima[1][ind-1]
-            maxi = maxima[1][ind]
-            maxi_1 = maxima[1][ind-1]
-            
-            #remove if multiple valleys in one cycle
-            ind_extra_valley = ind
-            while ind_extra_valley<len(minima[1]) and minima[1][ind_extra_valley]<=maxima[1][ind] :
-                minima[1].pop(ind)
-                minima[0].pop(ind)
-
-                ind_extra_valley = ind_extra_valley
-
-            if ind == 1:
-                if mini<=maxi and mini>=maxi_1:
-                    ind+=1
-                else:
-                    maxima[0].pop(ind)
-                    maxima[1].pop(ind)
-                    indices.pop(ind)
-
-                    ind=ind
-            else :
-                if mini<=maxi and mini>=maxi_1:
-                    ind+=1
-                else:
-                    maxima[0].pop(ind-1)
-                    maxima[1].pop(ind-1)
-                    indices.pop(ind-1)
-
-                    ind=ind
-
-        if len(maxima[0])<len(minima[0]):
-            difference = len(minima[0])-len(maxima[0])
-            print(difference)
-            for i in range(difference):
-                minima[0].pop(len(maxima[0]))
-                minima[1].pop(len(maxima[0]))
+        #Clean extra valleys
+        if len(minima[0])>=2 and len(maxima[0])>=1:
+            if minima[1][-1]>maxima[1][-1] and minima[1][-2]>maxima[1][-1]:
+                minima[0].pop()                                                          
+                minima[1].pop()   
+                indices.pop()
 
         #Results
         print('Amount of peaks:', len(maxima[0]))
         print('Amount of valleys:', len(minima[0]))
+        print(len(indices))
         return maxima, minima, indices
 
 
@@ -199,6 +170,21 @@ class DataProcess(object):
             emwaData.append(alpha*emwaData[k-1]+(1-alpha)*data[k])
             
         return emwaData
+
+    
+    def stepFrequency(self, peaks):
+        """
+        """
+        # Compute step frequency for individual steps
+        stepFreq = []
+        for i in range(len(peaks[0])-1):
+            timeOneStep = (peaks[1][i+1] - peaks[1][i]) / 1000
+            stepFreq.append(1 / timeOneStep)
+
+        # Compute Average Step Frequency
+        avgStepFreq = sum(stepFreq) / max(1,len(stepFreq))            
+
+        return avgStepFreq, stepFreq 
 
 
     def vectorComponents(self):
@@ -247,13 +233,6 @@ class DataProcess(object):
 
         oneStepTimeList = copyTimeList[indices[step_number]:indices[step_number+1]]
         return oneStepData, oneStepTimeList
-
-
-
-    
-
-
-
 
     def GCT1(self,maxima,minima):
         #init
@@ -406,19 +385,4 @@ def savitzky_golay(y, window_size, order, deriv=0, rate=1):
     lastvals = y[-1] + np.abs(y[-half_window-1:-1][::-1] - y[-1])
     y = np.concatenate((firstvals, y, lastvals))
     return np.convolve( m[::-1], y, mode='valid')
-
-
-    def stepFrequency(self, peaks):
-        """
-        """
-        # Compute step frequency for individual steps
-        stepFreq = []
-        for i in range(len(peaks[0])-1):
-            timeOneStep = (peaks[1][i+1] - peaks[1][i]) / 1000
-            stepFreq.append(1 / timeOneStep)
-
-        # Compute Average Step Frequency
-        avgStepFreq = sum(stepFreq) / len(stepFreq)            
-
-        return avgStepFreq, stepFreq 
         

@@ -87,16 +87,16 @@ for i in range (len(list_ss_comb_acc)):
 
 # Compute step frequencies
 
-f_step_avg, f_sstep = Data.stepFrequency(peaks)
+f_step_avg, f_sstep = Data.stepFrequency(valleys)
 
 
 
 
-sw_width = 50
-sw_type = 'x'
-noise_signal = DataProcess.SW(sw_width, sw_type, experiment_n=s.experiment)
-peaks_idx = gct_peaks(noise_signal)
-print(gct_from_peaks(peaks_idx, noise_signal, Data[s.experiment]['time_a']))
+# sw_width = 50
+# sw_type = 'x'
+# noise_signal = Data.SW(sw_width, sw_type, experiment_n=s.experiment)
+# peaks_idx = gct_peaks(noise_signal)
+# print(gct_from_peaks(peaks_idx, noise_signal, Data[s.experiment]['time_a']))
 
 
 
@@ -120,7 +120,7 @@ accPlot = Data_plot.plot1by2(figure=accPlot, xdata1=peaks[1], ydata1=peaks[0], l
                             xdata2=valleys[1], ydata2=valleys[0], linenumber2=1, subplotnumber=0 )
 
 step_plot = Data_plot.plot1by1(timestamps, comb_acc, lab='combAcc')
-step_plot = Data_plot.plot1by1(figure=step_plot,xdata=peaks[1],ydata=peaks[0],lab='peaks', points = True, cnr=0)
+#step_plot = Data_plot.plot1by1(figure=step_plot,xdata=peaks[1],ydata=peaks[0],lab='peaks', points = True, cnr=0)
 step_plot = Data_plot.plot1by1(figure=step_plot,xdata=valleys[1],ydata=valleys[0], lab='peaks', points=True, cnr=4)
 
 Data_plot.show_plot(step_plot,y_label='acceleration [m/s]', x_label=['time [ms]'], title='Step detection', legend=True)
@@ -163,8 +163,8 @@ Data_plot.show_plot(ss_combPlot, y_label='', x_label='time [s]', title='Processe
 
 
 # Plot step frequency
-nbStepList = [k for k in range (len(peaks[0])-1)]
-avgStepFreqList = [f_step_avg for k in range (len(peaks[0])-1)]
+nbStepList = [k for k in range (len(valleys[0])-1)]
+avgStepFreqList = [f_step_avg for k in range (len(valleys[0])-1)]
 fPlot = Data_plot.plot1by1(nbStepList, avgStepFreqList, lab='Average Step Frequency')
 fPlot = Data_plot.plot1by1(nbStepList, f_sstep, lab='Step Frequency', figure=fPlot, cnr=4, mnr=1, points=True )
 Data_plot.show_plot(fPlot, 'Step Frequency (steps/s)', 'Step Number', 'Step Frequency for Individual Steps', legend=True)
