@@ -337,24 +337,24 @@ def plot_gct_total(rawdata):
     }
 
     name_lut = {
-        'first': 0,
-        'second': 1,
-        'third': 2,
-        'fourth': 3
+        'long_jump': 0,
+        'sprint': 1,
+        'high_jump': 2,
+        '80m': 3
     }
 
     colors = {
-        'first': 'red',
-        'second': 'blue',
-        'third': 'green',
-        'fourth': 'black'
+        'long_jump': 'red',
+        'sprint': 'blue',
+        'high_jump': 'green',
+        '80m': 'black'
     }
     
     gct_total = []
 
     fig, ax = plt.subplots(dpi=100)
     for e in range(14):
-       exp_n = e + 21
+       exp_n = e
        data = DataProcess(rawdata[exp_n])
        noise_signal = data.SW(50, 'x')
        peaks_idx = gct_peaks(noise_signal)

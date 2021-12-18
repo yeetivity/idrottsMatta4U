@@ -239,7 +239,7 @@ class DataProcess(object):
 
         ordered_signal = np.sort(filtered_signal)
 
-        scndmaximum = ordered_signal[-5]
+        scndmaximum = ordered_signal[-1]
         return filtered_signal/scndmaximum
 
 

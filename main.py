@@ -66,7 +66,7 @@ pos_ss, vel_ss, acc_ss = kf_ss_comb_acc.kalmanFilter(indices[5:7])
 
 
 
-sw_width = 50
+sw_width = 20
 sw_type = 'x'
 noise_signal = Data.SW(sw_width, sw_type)
 peaks_idx = gct_peaks(noise_signal)
@@ -140,7 +140,7 @@ maxplot = Data_plot.plot1by1(Data.time, noise_signal, lab=f'SW noise - {sw_width
 maxplot = Data_plot.plot1by1(Data.time[peaks_idx], noise_signal[peaks_idx], lab=f'peaks', figure=maxplot, cnr=2, points=True)
 
 Data_plot.show_plot(maxplot, x_lim=[0,20000], y_lim=[-10, 30],
-                    y_label='magnitude', x_label='time', title='max check', legend=True)
+                    y_label='magnitude', x_label='time', title='80m acc x', legend=True)
 
 #maxplot2 = data_plot.plot1by1(data[s.experiment]['time_a'], sw, lab='AccX')
 
