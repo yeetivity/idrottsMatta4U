@@ -85,12 +85,17 @@ pos_AP, vel_AP, acc_AP = kf_anterioposterior.kalmanFilter(reset_times=peaks)
 pos_vert, vel_vert, acc_vert = kf_vertical.kalmanFilter(reset_times=peaks)      #! ML
 
 # Compute accelerations, velocity and position for one step
-#ss_comb_acc, ss_comb_acc_time = Data.dataOneStep(comb_acc, indices, step_number=5)
-#kf_ss_comb_acc = kf(ss_comb_acc, Type='Acc')
-#pos_ss, vel_ss, acc_ss = kf_ss_comb_acc.kalmanFilter(indices[5:7])
+ss_comb_acc, ss_comb_acc_time = Data.dataOneStep(vector_data[2], indices, step_number=5)
+kf_ss_comb_acc = kf(ss_comb_acc, Type='Acc')
+pos_ss, vel_ss, acc_ss = kf_ss_comb_acc.kalmanFilter(indices[5:7])
 
 # Compute step frequencies
 f_step_avg, f_sstep = Data.stepFrequency(peaks)
+
+# Data for one step
+#oneStepCombAcc, oneStepCombAccTimelist = DataProcess.dataOneStep(combAcc[s.experiment],indices,5)
+#oneStepXAcc, oneStepXAccTimelist = DataProcess.dataOneStep(data[s.experiment]['accX'],indices,5)
+#oneStepKalData = DataProcess.complexKalmanFilter(oneStepCombAcc,indices[5:7])
 
 """
 ------------------------------PLOTTING DATA ------------------------------
@@ -158,24 +163,24 @@ Data_plot.show_plot(vectorPlot_vert, y_label='', x_label='time [ms]', title='Pro
 
 
 # Plot complex kalman filtered data for ONE STEP
-oneStepKalComplex = Data_plot.plot3by1(oneStepCombAccTimelist, oneStepKalData[0], 
-                                    oneStepCombAccTimelist, oneStepKalData[1],
-                                    oneStepCombAccTimelist, oneStepKalData[2],
-                                    lab1= 'position', lab2 ='speed', lab3='acceleration')
-data_plot.show_plot(oneStepKalComplex,
-                    y_label='magnitude', x_label='time', title='Position, speed and acceleration', legend=True)
+#oneStepKalComplex = Data_plot.plot3by1(oneStepCombAccTimelist, oneStepKalData[0], 
+                                   # oneStepCombAccTimelist, oneStepKalData[1],
+                                    #oneStepCombAccTimelist, oneStepKalData[2],
+                                    #lab1= 'position', lab2 ='speed', lab3='acceleration')
+#data_plot.show_plot(oneStepKalComplex,
+                   # y_label='magnitude', x_label='time', title='Position, speed and acceleration', legend=True)
 
 # Create figure for one step
-#ssPlot = Data_plot.plot1by1(ss_comb_acc_time, ss_comb_acc, lab='Combined acceleration', cnr=6)
-#Data_plot.show_plot(ssPlot, 'magnitude', 'time', 'Combined accelerations for one step', legend=True)
+ssPlot = Data_plot.plot1by1(ss_comb_acc_time, ss_comb_acc, lab='Combined acceleration', cnr=6)
+Data_plot.show_plot(ssPlot, 'magnitude', 'time', 'Combined accelerations (AP) for one step', legend=True)
 
 # Create figure with accelerations, velocities and positions for one step
-#ss_combPlot = Data_plot.plot3by1(   xdata1=ss_comb_acc_time, ydata1=pos_ss, lab1='position',
-                                    #xdata2=ss_comb_acc_time, ydata2=vel_ss, lab2='velocity',
-                                    #xdata3=ss_comb_acc_time, ydata3=acc_ss, lab3='acceleration')
+ss_combPlot = Data_plot.plot3by1(   xdata1=ss_comb_acc_time, ydata1=pos_ss, lab1='position',
+                                    xdata2=ss_comb_acc_time, ydata2=vel_ss, lab2='velocity',
+                                    xdata3=ss_comb_acc_time, ydata3=acc_ss, lab3='acceleration')
 
 # Plot figure with accelerations, velocities and positions
-#Data_plot.show_plot(ss_combPlot, y_label='', x_label='time [s]', title='Processed single step accelerations', legend=True)
+Data_plot.show_plot(ss_combPlot, y_label='', x_label='time [s]', title='Processed single step accelerations', legend=True)
 
 # Plot step frequency
 #nbStepList = [k for k in range (len(peaks[0])-1)]

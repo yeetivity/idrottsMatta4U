@@ -19,7 +19,7 @@ class DataProcess(object):
     """
     def __init__(self, storeddata): #TODO make everything that can be array an array
         self.gyro = [storeddata['gyrX'],storeddata['gyrY'],storeddata['gyrZ']]
-        self.acc = [storeddata['accX'], convert(storeddata['accY']), convert(storeddata['accZ'])] #TODO check x-axis
+        self.acc = [convert(storeddata['accX']), convert(storeddata['accY']), convert(storeddata['accZ'])] #TODO check x-axis
         self.time = storeddata['time_a'] 
 
         self.combAcc = []
